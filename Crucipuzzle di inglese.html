@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Crucipuzzle di inglese</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{--bg:#f4f7fb;--panel:#fff;--ink:#1d2433;--mute:#566075;--line:#cdd6e4;--acc:#2f5fd0;--c0:#0b8a75;--c1:#b86e00;--c2:#7a4fd6;--cn:#2f5fd0;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161f;--panel:#1b2130;--ink:#e8ecf5;--mute:#9aa6bd;--line:#34405a;--acc:#7fa3ff;--c0:#3fd1b5;--c1:#f2b04a;--c2:#b79bff;--cn:#7fa3ff;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12161f;--panel:#1b2130;--ink:#e8ecf5;--mute:#9aa6bd;--line:#34405a;--acc:#7fa3ff;--c0:#3fd1b5;--c1:#f2b04a;--c2:#b79bff;--cn:#7fa3ff;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.45 "Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:1060px;margin:0 auto;padding:16px}
+h1{font-size:clamp(26px,5vw,38px);margin:4px 0 2px;letter-spacing:-.01em}
+.sub{color:var(--mute);margin:0 0 14px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+button{font:inherit;color:inherit;cursor:pointer}
+.lv{display:flex;flex-wrap:wrap;gap:6px}
+.lv button,.act button{padding:8px 14px;border:2px solid var(--line);background:var(--panel);border-radius:10px;min-height:44px}
+.lv button[aria-pressed="true"]{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 16%,var(--panel));font-weight:700}
+.act{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto}
+button:focus-visible,.cell:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.opts{display:flex;flex-wrap:wrap;gap:16px;margin:6px 0 12px;color:var(--mute)}
+.opts label{display:flex;gap:8px;align-items:center;cursor:pointer}
+.opts input{width:20px;height:20px}
+.desc{margin:0 0 12px;padding:10px 14px;border-left:5px solid var(--acc);background:var(--panel);border-radius:0 10px 10px 0}
+.tm{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.track{flex:1;height:12px;background:var(--line);border-radius:8px;overflow:hidden}
+.track i{display:block;height:100%;width:0;background:var(--acc);transition:width 1s linear}
+.tm span{min-width:52px;text-align:right;font-variant-numeric:tabular-nums}
+.game{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start}
+@media(max-width:840px){.game{grid-template-columns:1fr}}
+.board{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;background:var(--panel);padding:8px;border:2px solid var(--line);border-radius:14px;touch-action:none;user-select:none;-webkit-user-select:none;width:100%;max-width:580px}
+.cell{aspect-ratio:1;display:grid;place-items:center;font-weight:700;font-size:clamp(16px,4.6vw,28px);border-radius:7px;cursor:pointer;background:transparent}
+.hint .cell.first{box-shadow:inset 0 0 0 3px var(--c,var(--cn))}
+.cell.sel{background:color-mix(in srgb,var(--acc) 30%,var(--panel));outline:2px solid var(--acc)}
+.cell.found{background:color-mix(in srgb,var(--c) 40%,var(--panel))}
+.cell.sol:not(.found){outline:3px dashed var(--c)}
+.cat h2{font-size:18px;margin:0 0 4px;padding-left:10px;border-left:6px solid var(--c)}
+.cat{margin-bottom:12px}
+.word{display:flex;gap:10px;align-items:center;padding:8px 10px;border:2px solid var(--line);border-radius:12px;margin:6px 0;background:var(--panel);min-height:54px}
+.word.done{border-color:var(--c);background:color-mix(in srgb,var(--c) 16%,var(--panel))}
+.emo{font-size:30px;line-height:1}
+.txt{flex:1;min-width:0}
+.txt b{font-size:20px;letter-spacing:.06em}
+.txt small{display:block;color:var(--mute);font-size:15px;line-height:1.3}
+.blank{letter-spacing:.25em;color:var(--mute)}
+.sp{width:44px;height:44px;border:2px solid var(--line);border-radius:50%;background:var(--panel);font-size:18px}
+.msg{margin:12px 0 0;padding:12px 14px;border-radius:12px;background:color-mix(in srgb,var(--c0) 18%,var(--panel));border:2px solid var(--c0);font-weight:700}
+.msg:empty{display:none}
+.stat{color:var(--mute);margin:0 0 8px}
+@media print{.bar,.opts,.tm,.msg,.sp,.desc{display:none!important}body{background:#fff;color:#000}.game{grid-template-columns:1fr 300px}}
+@media(prefers-reduced-motion:reduce){.track i{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Crucipuzzle di inglese</h1>
+<p class="sub">Trova le parole nella griglia. Trascina da una lettera all’ultima, oppure tocca la prima e poi l’ultima.</p>
+
+<div class="bar">
+ <div class="lv" id="lv" role="group" aria-label="Livello"></div>
+ <div class="act">
+  <button id="new">Nuova griglia</button>
+  <button id="sol">Soluzione</button>
+  <button id="prt">Stampa</button>
+ </div>
+</div>
+<div class="opts">
+ <label><input type="checkbox" id="hint"> Evidenzia la prima lettera</label>
+ <label><input type="checkbox" id="tmr" checked> Mostra il timer</label>
+</div>
+<p class="desc" id="desc"></p>
+<div class="tm" id="tm"><div class="track"><i id="bar"></i></div><span id="clock">0:00</span></div>
+
+<div class="game">
+ <div>
+  <p class="stat" id="stat" aria-live="polite"></p>
+  <div class="board" id="board" aria-label="Griglia di lettere"></div>
+  <p class="msg" id="msg" role="status"></p>
+ </div>
+ <div id="list"></div>
+</div>
+</div>
+
+<script>
+const N=10;
+const CATS=[{en:"Animals",it:"Animali"},{en:"Food",it:"Cibo"},{en:"School",it:"Scuola"}];
+const W=[
+{w:"CAT",c:0,e:"🐱",it:"Animale domestico che miagola",en:"A small pet that says meow"},
+{w:"DOG",c:0,e:"🐶",it:"Il migliore amico dell’uomo, abbaia",en:"A pet that barks"},
+{w:"FISH",c:0,e:"🐟",it:"Vive nell’acqua e nuota",en:"It lives in water and swims"},
+{w:"BIRD",c:0,e:"🐦",it:"Ha le ali e vola",en:"It has wings and can fly"},
+{w:"MILK",c:1,e:"🥛",it:"Bevanda bianca che dà la mucca",en:"A white drink from cows"},
+{w:"EGG",c:1,e:"🥚",it:"Lo depone la gallina",en:"A hen lays it"},
+{w:"CAKE",c:1,e:"🎂",it:"Dolce per il compleanno",en:"A sweet food for birthdays"},
+{w:"RICE",c:1,e:"🍚",it:"Piccoli chicchi bianchi, base del risotto",en:"Small white grains you cook in water"},
+{w:"BOOK",c:2,e:"📖",it:"Si legge e ha tante pagine",en:"You read it and it has pages"},
+{w:"PEN",c:2,e:"🖊️",it:"Serve per scrivere con l’inchiostro",en:"You write with it using ink"},
+{w:"DESK",c:2,e:"🗄️",it:"Il tavolo dove lavora lo studente",en:"A table where students work"},
+{w:"BAG",c:2,e:"🎒",it:"Si porta sulle spalle e contiene i quaderni",en:"You carry your books in it"}
+];
+const LV=[
+ {n:"1 Guidato",d:"Livello 1: vedi parole e immagini, divise in categorie con un colore ciascuna. Cerca le parole nella griglia."},
+ {n:"2 Definizioni IT",d:"Livello 2: leggi la definizione in italiano, indovina la parola e cercala. Le categorie restano visibili."},
+ {n:"3 Definizioni EN",d:"Livello 3: leggi la definizione in inglese, indovina la parola e cercala. Le categorie restano visibili."},
+ {n:"4 Solo EN",d:"Livello 4: solo definizioni in inglese, senza categorie. Indovina e cerca le parole."}
+];
+const $=id=>document.getElementById(id);
+const rnd=n=>Math.floor(Math.random()*n);
+const S={lvl:0,g:[],pl:[],found:new Set(),anchor:null,armed:false,drag:false,sec:0,timer:null,done:false,sol:false,order:[]};
+const col=o=>S.lvl===3?"var(--cn)":"var(--c"+o.c+")";
+
+function build(){
+ for(let a=0;a<80;a++){
+  const g=Array.from({length:N},()=>Array(N).fill("")),pl=[];let ok=true;
+  for(const o of [...W].sort((x,y)=>y.w.length-x.w.length)){
+   let p=false;
+   for(let t=0;t<300&&!p;t++){
+    const v=Math.random()<.5,r=rnd(v?N-o.w.length+1:N),c=rnd(v?N:N-o.w.length+1);
+    const cells=[...o.w].map((_,i)=>[r+(v?i:0),c+(v?0:i)]);
+    if(cells.every(([y,x],i)=>!g[y][x]||g[y][x]===o.w[i])){cells.forEach(([y,x],i)=>g[y][x]=o.w[i]);pl.push({o,cells});p=true}
+   }
+   if(!p){ok=false;break}
+  }
+  if(ok){const L="ABCDEFGHIKLMNOPRSTUVWY";for(let y=0;y<N;y++)for(let x=0;x<N;x++)if(!g[y][x])g[y][x]=L[rnd(L.length)];return{g,pl}}
+ }
+}
+const cellEl=(r,c)=>$("board").children[r*N+c];
+
+function start(){
+ const b=build();S.g=b.g;S.pl=b.pl;S.found=new Set();S.anchor=null;S.armed=false;S.drag=false;S.done=false;S.sol=false;S.sec=0;
+ S.order=[...W].sort(()=>Math.random()-.5);
+ $("msg").textContent="";
+ const B=$("board");B.innerHTML="";
+ S.g.forEach((row,r)=>row.forEach((ch,c)=>{const d=document.createElement("div");d.className="cell";d.textContent=ch;d.dataset.r=r;d.dataset.c=c;B.appendChild(d)}));
+ S.pl.forEach(({o,cells})=>cells.forEach(([r,c],i)=>{const e=cellEl(r,c);e.style.setProperty("--c",col(o));if(i===0)e.classList.add("first")}));
+ clearInterval(S.timer);
+ $("bar").style.width="0";$("clock").textContent="0:00";
+ S.timer=setInterval(tick,1000);
+ renderList();
+}
+function tick(){
+ S.sec++;const m=Math.floor(S.sec/60),s=S.sec%60;
+ $("clock").textContent=m+":"+String(s).padStart(2,"0");
+ $("bar").style.width=Math.min(S.sec/300,1)*100+"%";
+}
+function speak(w){
+ try{const u=new SpeechSynthesisUtterance(w.toLowerCase());u.lang="en-US";u.rate=.8;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}
+}
+function item(o){
+ const done=S.found.has(o.w)||S.sol,L=S.lvl;
+ const emo=L<2?'<span class="emo">'+o.e+'</span>':"";
+ let t;
+ if(L===0)t="<b>"+o.w+"</b>";
+ else{
+  const def=L===1?o.it:o.en;
+  t=(done?"<b>"+o.w+"</b>":'<span class="blank">'+"_ ".repeat(o.w.length).trim()+"</span>")+"<small>"+def+"</small>";
+ }
+ const sp=(L===0||done)?'<button class="sp" data-w="'+o.w+'" aria-label="Ascolta la pronuncia">🔊</button>':"";
+ return '<div class="word'+(S.found.has(o.w)?" done":"")+'" style="--c:'+col(o)+'">'+emo+'<div class="txt">'+t+"</div>"+sp+"</div>";
+}
+function renderList(){
+ let h="";
+ if(S.lvl<3){
+  CATS.forEach((k,i)=>{
+   h+='<div class="cat" style="--c:var(--c'+i+')"><h2>'+(S.lvl===1?k.it:k.en)+"</h2>"+W.filter(o=>o.c===i).map(item).join("")+"</div>";
+  });
+ }else h=S.order.map(item).join("");
+ $("list").innerHTML=h;
+ $("stat").textContent="Parole trovate: "+S.found.size+" su "+W.length;
+}
+function line(a,b){
+ if(a.r!==b.r&&a.c!==b.c)return null;
+ const cells=[];
+ if(a.r===b.r){const s=a.c<=b.c?1:-1;for(let c=a.c;c!==b.c+s;c+=s)cells.push([a.r,c])}
+ else{const s=a.r<=b.r?1:-1;for(let r=a.r;r!==b.r+s;r+=s)cells.push([r,a.c])}
+ return cells;
+}
+function clearSel(){[...$("board").children].forEach(e=>e.classList.remove("sel"))}
+function preview(b){
+ clearSel();if(!S.anchor)return;
+ const cells=(b&&line(S.anchor,b))||[[S.anchor.r,S.anchor.c]];
+ cells.forEach(([r,c])=>cellEl(r,c).classList.add("sel"));
+}
+function evaluate(a,b){
+ const cells=line(a,b);clearSel();S.anchor=null;S.armed=false;
+ if(!cells||cells.length<2)return;
+ const s=cells.map(([r,c])=>S.g[r][c]).join(""),rs=[...s].reverse().join("");
+ const o=W.find(o=>!S.found.has(o.w)&&(o.w===s||o.w===rs));
+ if(!o)return;
+ S.found.add(o.w);
+ cells.forEach(([r,c])=>{const e=cellEl(r,c);e.style.setProperty("--c",col(o));e.classList.add("found")});
+ renderList();speak(o.w);
+ if(S.found.size===W.length){
+  clearInterval(S.timer);S.done=true;
+  $("msg").textContent="Bravo! Hai trovato tutte le parole in "+$("clock").textContent+".";
+ }
+}
+function cellAt(x,y){const e=document.elementFromPoint(x,y);return e&&e.closest&&e.closest(".cell")}
+const pos=e=>e?{r:+e.dataset.r,c:+e.dataset.c}:null;
+const B=$("board");
+B.addEventListener("pointerdown",ev=>{
+ const e=cellAt(ev.clientX,ev.clientY);if(!e||S.done)return;
+ ev.preventDefault();
+ const p=pos(e);
+ if(S.anchor&&S.armed){evaluate(S.anchor,p);return}
+ S.anchor=p;S.drag=true;S.armed=false;preview(p);
+});
+B.addEventListener("pointermove",ev=>{
+ if(!S.drag)return;
+ const e=cellAt(ev.clientX,ev.clientY);if(e)preview(pos(e));
+});
+window.addEventListener("pointerup",ev=>{
+ if(!S.drag)return;S.drag=false;
+ const e=cellAt(ev.clientX,ev.clientY),p=pos(e);
+ if(p&&(p.r!==S.anchor.r||p.c!==S.anchor.c))evaluate(S.anchor,p);
+ else S.armed=true;
+});
+
+$("list").addEventListener("click",ev=>{const b=ev.target.closest(".sp");if(b)speak(b.dataset.w)});
+$("new").onclick=start;
+$("sol").onclick=()=>{
+ S.sol=!S.sol;
+ S.pl.forEach(({cells})=>cells.forEach(([r,c])=>cellEl(r,c).classList.toggle("sol",S.sol)));
+ $("sol").textContent=S.sol?"Nascondi soluzione":"Soluzione";
+ renderList();
+};
+$("prt").onclick=()=>window.print();
+$("hint").onchange=e=>B.classList.toggle("hint",e.target.checked);
+$("tmr").onchange=e=>{$("tm").style.display=e.target.checked?"":"none"};
+
+function setLevel(i){
+ S.lvl=i;
+ [...$("lv").children].forEach((b,k)=>b.setAttribute("aria-pressed",k===i));
+ $("desc").textContent=LV[i].d;
+ const h=i<2;$("hint").checked=h;B.classList.toggle("hint",h);
+ $("sol").textContent="Soluzione";
+ start();
+}
+LV.forEach((l,i)=>{const b=document.createElement("button");b.textContent=l.n;b.onclick=()=>setLevel(i);$("lv").appendChild(b)});
+setLevel(0);
+</script>
+</body>
+</html>
