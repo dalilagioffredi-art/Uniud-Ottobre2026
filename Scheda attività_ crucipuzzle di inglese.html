@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scheda attività: crucipuzzle di inglese</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{--bg:#f4f7fb;--panel:#fff;--ink:#1d2433;--mute:#566075;--line:#cdd6e4;--acc:#2f5fd0;--c0:#0b8a75;--c1:#b86e00;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161f;--panel:#1b2130;--ink:#e8ecf5;--mute:#9aa6bd;--line:#34405a;--acc:#7fa3ff;--c0:#3fd1b5;--c1:#f2b04a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12161f;--panel:#1b2130;--ink:#e8ecf5;--mute:#9aa6bd;--line:#34405a;--acc:#7fa3ff;--c0:#3fd1b5;--c1:#f2b04a;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.5 "Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:16px}
+h1{font-size:clamp(26px,5vw,38px);margin:4px 0 6px;letter-spacing:-.01em}
+h2{font-size:22px;margin:0 0 8px}
+p{margin:0 0 12px;max-width:68ch}
+.lead{color:var(--mute)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
+.tabs button{padding:8px 14px;min-height:44px;border:2px solid var(--line);background:var(--panel);border-radius:10px}
+.tabs button[aria-selected="true"]{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 16%,var(--panel));font-weight:700}
+.panel{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:18px}
+.panel[hidden]{display:none}
+.check{display:flex;gap:12px;align-items:flex-start;padding:12px;border:2px solid var(--line);border-radius:12px;margin:8px 0;cursor:pointer}
+.check input{width:24px;height:24px;margin-top:2px;flex:none}
+.check.on{border-color:var(--c0);background:color-mix(in srgb,var(--c0) 14%,var(--panel))}
+.prog{height:12px;background:var(--line);border-radius:8px;overflow:hidden;margin:10px 0 4px}
+.prog i{display:block;height:100%;width:0;background:var(--c0);transition:width .3s}
+details{border:2px solid var(--line);border-radius:12px;padding:10px 14px;margin:8px 0}
+summary{cursor:pointer;font-weight:700}
+details p{margin:8px 0 0}
+.tag{display:inline-block;padding:2px 10px;border-radius:20px;background:color-mix(in srgb,var(--acc) 16%,var(--panel));font-size:15px;margin-right:6px}
+.demo{display:grid;grid-template-columns:minmax(0,300px) 1fr;gap:20px;align-items:start}
+@media(max-width:640px){.demo{grid-template-columns:1fr}}
+.g{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;padding:6px;border:2px solid var(--line);border-radius:12px;max-width:300px}
+.c{aspect-ratio:1;display:grid;place-items:center;font-weight:700;font-size:22px;border-radius:6px;position:relative}
+.col .c.w{background:color-mix(in srgb,var(--k) 38%,var(--panel))}
+.fst .c.f{box-shadow:inset 0 0 0 3px var(--k,var(--acc))}
+.arr .c.f::after{content:attr(data-a);position:absolute;top:0;right:3px;font-size:12px;color:var(--mute)}
+.tg{display:flex;gap:10px;align-items:center;padding:8px 0;cursor:pointer}
+.tg input{width:22px;height:22px}
+.timer{height:12px;background:var(--line);border-radius:8px;overflow:hidden;margin-top:10px;opacity:.35}
+.timer i{display:block;height:100%;width:0;background:var(--acc)}
+.timer.on{opacity:1}
+.timer.on i{animation:fill 20s linear infinite}
+@keyframes fill{to{width:100%}}
+@media(prefers-reduced-motion:reduce){.timer.on i{animation:none;width:45%}}
+.steps{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.steps button{flex:1 1 110px;padding:10px;min-height:48px;border:2px solid var(--line);background:var(--panel);border-radius:10px}
+.steps button[aria-pressed="true"]{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 16%,var(--panel));font-weight:700}
+.cta{display:inline-block;margin-top:8px;padding:10px 16px;background:var(--acc);color:#fff;border-radius:10px;text-decoration:none;font-weight:700}
+.legend{display:flex;gap:12px;flex-wrap:wrap;color:var(--mute);font-size:15px;margin-top:8px}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Crucipuzzle di inglese</h1>
+<p class="lead">Scheda dell’attività: scegli una sezione per consultarla, spuntare i prerequisiti e provare i facilitatori.</p>
+
+<div class="tabs" role="tablist" id="tabs"></div>
+
+<section class="panel" id="p0" role="tabpanel">
+ <h2>Presentazione</h2>
+ <p>L’attività è pensata per favorire l’apprendimento del lessico inglese attraverso il gioco, la ricerca visiva e il riconoscimento delle parole indicate, da usare poi in semplici contesti.</p>
+ <p>L’alunno deve trovare nella matrice, riempita di lettere, le parole della lista. Le parole sono brevi e comuni, accompagnate da immagini descrittive e suddivise in categorie.</p>
+ <a class="cta" href="https://claude.ai/artifact/MQbEvEZotwchbZj6SZCHWa" target="_blank" rel="noopener">Apri il gioco</a>
+</section>
+
+<section class="panel" id="p1" role="tabpanel" hidden>
+ <h2>Prerequisiti indispensabili</h2>
+ <p class="lead">Spunta quelli che l’alunno possiede già.</p>
+ <div id="pre"></div>
+ <div class="prog"><i id="pb"></i></div>
+ <p id="pt" aria-live="polite"></p>
+</section>
+
+<section class="panel" id="p2" role="tabpanel" hidden>
+ <h2>Obiettivi</h2>
+ <p class="lead">Tocca un obiettivo per leggerlo.</p>
+ <p><span class="tag">Principali</span></p>
+ <details><summary>Capacità strategica di pianificazione</summary><p>Sviluppare la capacità di pianificare, ad esempio individuando per prime le parole più semplici.</p></details>
+ <details><summary>Scansione visiva e attenzione</summary><p>Potenziare i processi di scansione visiva, l’orientamento spaziale e l’attenzione focalizzata e sostenuta.</p></details>
+ <details><summary>Ortografia (spelling)</summary><p>Rinforzare lo spelling stimolando la ricerca e l’analisi lettera per lettera.</p></details>
+ <p style="margin-top:14px"><span class="tag">Secondari</span></p>
+ <details><summary>Learning to learn</summary><p>Stimolare la ricerca di strategie personali di risoluzione del problema.</p></details>
+ <details><summary>Consolidamento del lessico target</summary><p>Rafforzare le parole della lista attraverso la ricerca e il riconoscimento ripetuti.</p></details>
+</section>
+
+<section class="panel" id="p3" role="tabpanel" hidden>
+ <h2>Facilitatori</h2>
+ <p class="lead">Attiva i facilitatori e guarda come cambia la griglia di prova.</p>
+ <div class="demo">
+  <div>
+   <div class="g" id="g"></div>
+   <div class="timer" id="tm" aria-hidden="true"><i></i></div>
+   <div class="legend"><span><span class="dot" style="background:var(--c0)"></span>Animals</span><span><span class="dot" style="background:var(--c1)"></span>Food</span></div>
+  </div>
+  <div>
+   <label class="tg"><input type="checkbox" data-f="col"> Evidenziatori cromatici</label>
+   <label class="tg"><input type="checkbox" data-f="fst"> Prime lettere evidenziate</label>
+   <label class="tg"><input type="checkbox" data-f="arr"> Direzionalità semplificata</label>
+   <label class="tg"><input type="checkbox" id="tt"> Timer visivo</label>
+   <p class="lead" id="fx" style="margin-top:8px" aria-live="polite">Nessun facilitatore attivo.</p>
+  </div>
+ </div>
+</section>
+
+<section class="panel" id="p4" role="tabpanel" hidden>
+ <h2>Calibrare l’esercizio</h2>
+ <p class="lead">Scegli un punto della scala per vedere cosa cambia.</p>
+ <div class="steps" id="st"></div>
+ <div id="sd"></div>
+</section>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const T=["Presentazione","Prerequisiti","Obiettivi","Facilitatori","Calibrare"];
+T.forEach((t,i)=>{
+ const b=document.createElement("button");b.textContent=t;b.setAttribute("role","tab");b.onclick=()=>show(i);$("tabs").appendChild(b);
+});
+function show(n){
+ [...$("tabs").children].forEach((b,i)=>b.setAttribute("aria-selected",i===n));
+ T.forEach((_,i)=>$("p"+i).hidden=i!==n);
+}
+show(0);
+
+const PRE=["Conoscenza di base dell’alfabeto inglese","Familiarità lessicale con gli argomenti","Capacità di isolare una sequenza di lettere o una parola","Familiarità con questo tipo di gioco (anche in italiano)"];
+PRE.forEach((t,i)=>{
+ const l=document.createElement("label");l.className="check";
+ l.innerHTML='<input type="checkbox"><span>'+t+"</span>";
+ l.firstChild.onchange=e=>{l.classList.toggle("on",e.target.checked);upd()};
+ $("pre").appendChild(l);
+});
+function upd(){
+ const n=document.querySelectorAll("#pre input:checked").length;
+ $("pb").style.width=n/PRE.length*100+"%";
+ $("pt").textContent=n===PRE.length?"Tutti i prerequisiti sono presenti: si può iniziare.":n+" prerequisiti su "+PRE.length+". Gli altri vanno consolidati prima di iniziare.";
+}
+upd();
+
+/* griglia di prova */
+const G=["CATPZM","XQBEWI","DOGRNL","UVYKSK","FISHCJ"];
+const WD=[{r:0,c:0,n:3,v:0,k:0},{r:2,c:0,n:3,v:0,k:0},{r:4,c:0,n:4,v:0,k:0},{r:0,c:5,n:4,v:1,k:1}];
+const g=$("g");
+G.forEach((row,r)=>[...row].forEach((ch,c)=>{const d=document.createElement("div");d.className="c";d.textContent=ch;d.dataset.r=r;d.dataset.c=c;g.appendChild(d)}));
+WD.forEach(w=>{for(let i=0;i<w.n;i++){
+ const e=g.children[(w.r+(w.v?i:0))*6+w.c+(w.v?0:i)];
+ e.classList.add("w");e.style.setProperty("--k",w.k?"var(--c1)":"var(--c0)");
+ if(i===0){e.classList.add("f");e.dataset.a=w.v?"↓":"→"}
+}});
+const FX={col:"I colori distinguono le categorie.",fst:"La prima lettera di ogni parola è evidenziata.",arr:"Le frecce indicano la direzione: solo da sinistra a destra e dall’alto in basso.",tm:"La barra mostra il tempo che passa."};
+function fx(){
+ const on=[...document.querySelectorAll("[data-f]")].filter(i=>i.checked).map(i=>i.dataset.f);
+ on.forEach(f=>0);
+ ["col","fst","arr"].forEach(f=>g.classList.toggle(f,on.includes(f)));
+ const msgs=on.map(f=>FX[f]);if($("tt").checked)msgs.push(FX.tm);
+ $("fx").textContent=msgs.length?msgs.join(" "):"Nessun facilitatore attivo.";
+}
+document.querySelectorAll("[data-f]").forEach(i=>i.onchange=fx);
+$("tt").onchange=e=>{$("tm").classList.toggle("on",e.target.checked);fx()};
+
+const ST=[
+ {n:"Più semplice",t:"Facilitatori attivi",d:"Si usano i facilitatori: parole suddivise in categorie con colori diversi, un’immagine esplicativa accanto a ogni parola e una nota vocale con la pronuncia corretta, per rafforzare sia lo spelling sia la pronuncia."},
+ {n:"Livello 1",t:"Definizioni in italiano",d:"Le parole vanno dedotte da definizioni in italiano. Resta la suddivisione in categorie."},
+ {n:"Livello 2",t:"Definizioni in inglese",d:"Le definizioni sono in inglese. La suddivisione in categorie resta ancora."},
+ {n:"Livello 3",t:"Solo definizioni in inglese",d:"Si elimina la suddivisione in categorie e si tengono solo le definizioni nella lingua target."}
+];
+ST.forEach((s,i)=>{
+ const b=document.createElement("button");b.textContent=s.n;b.setAttribute("aria-pressed","false");
+ b.onclick=()=>{[...$("st").children].forEach((x,k)=>x.setAttribute("aria-pressed",k===i));$("sd").innerHTML="<h2>"+s.t+"</h2><p>"+s.d+"</p>"};
+ $("st").appendChild(b);
+});
+$("st").children[0].click();
+</script>
+</body>
+</html>
