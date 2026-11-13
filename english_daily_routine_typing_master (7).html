@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="it" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Daily Routine Typing Master</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter & Fredoka -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti for celebratory animations -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-pink': '#FF3366',
+                        'brand-purple': '#7C3AED',
+                        'brand-blue': '#2563EB',
+                        'brand-cyan': '#06B6D4',
+                        'brand-yellow': '#F59E0B',
+                        'brand-lime': '#10B981',
+                        'light-bg': '#F8FAFC',
+                        'light-card': '#FFFFFF'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Fredoka', 'sans-serif'],
+                        mono: ['Courier New', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #EEF2FF 0%, #FCE7F3 50%, #ECFEFF 100%);
+            min-height: 100vh;
+            color: #1E293B;
+        }
+        .h-font {
+            font-family: 'Fredoka', sans-serif;
+        }
+        .vibrant-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(124, 58, 237, 0.15);
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.08);
+        }
+        .typing-font {
+            font-family: 'Courier New', Courier, monospace;
+            letter-spacing: 0.06em;
+        }
+        /* Custom Character Highlighting */
+        .char-correct {
+            color: #059669;
+            background-color: rgba(16, 185, 129, 0.18);
+            border-bottom: 3px solid #10B981;
+            font-weight: bold;
+        }
+        .char-incorrect {
+            color: #DC2626;
+            background-color: rgba(239, 68, 68, 0.2);
+            border-bottom: 3px solid #EF4444;
+            text-decoration: line-through;
+            font-weight: bold;
+        }
+        .char-current {
+            background-color: #2563EB;
+            color: #FFFFFF;
+            border-radius: 4px;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(37, 99, 235, 0.5);
+            animation: pulse-caret 1s infinite;
+        }
+        @keyframes pulse-caret {
+            0%, 100% { opacity: 1; transform: scale(1.05); }
+            50% { opacity: 0.7; transform: scale(1); }
+        }
+        .shake {
+            animation: shake 0.3s ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-full">
+
+    <!-- FLOATING HUD TIMER BAR (Visible on scroll) -->
+    <div id="sticky-hud" class="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md shadow-lg py-3 px-6 transform -translate-y-full transition-transform duration-300 border-b border-indigo-200 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <span class="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-extrabold px-3 py-1 rounded-xl uppercase tracking-wider shadow">HUD Live</span>
+            <span id="hud-status" class="text-xs font-bold text-indigo-700">Pronto</span>
+        </div>
+        <div class="flex items-center gap-6 text-sm">
+            <div class="flex items-center gap-1.5 font-bold text-amber-600">
+                <i class="fa-solid fa-stopwatch text-pink-600"></i>
+                <span id="hud-timer-display" class="font-mono text-base">03:00</span>
+            </div>
+            <div class="hidden sm:flex items-center gap-1.5 font-bold text-cyan-700">
+                <i class="fa-solid fa-gauge-high text-cyan-600"></i>
+                <span id="hud-wpm">0</span> WPM
+            </div>
+            <div class="hidden sm:flex items-center gap-1.5 font-bold text-emerald-700">
+                <i class="fa-solid fa-bullseye"></i>
+                <span id="hud-acc">100%</span>
+            </div>
+            <div class="hidden md:flex items-center gap-1.5 font-bold text-indigo-700">
+                <i class="fa-solid fa-key text-amber-500"></i>
+                <span id="hud-kw">0/5</span>
+            </div>
+        </div>
+        <button onclick="scrollToTopAndFocus()" class="bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-extrabold px-3.5 py-1.5 rounded-xl shadow transition-all">
+            <i class="fa-solid fa-arrow-up"></i> Torna al Testo
+        </button>
+    </div>
+
+    <!-- HEADER / NAVIGATION -->
+    <header class="bg-gradient-to-r from-pink-500 via-purple-600 to-cyan-500 text-white shadow-xl py-5 px-6 border-b border-white/30">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-14 h-14 rounded-2xl bg-white/25 backdrop-blur-md flex items-center justify-center shadow-inner border border-white/40">
+                    <i class="fa-solid fa-keyboard text-3xl text-amber-300 drop-shadow"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold h-font tracking-wide drop-shadow">Daily Routine Typing Master</h1>
+                    <p class="text-xs md:text-sm text-amber-100 font-bold">Esercizio Dattilografia Inglese • Terza Media ⚡ Timer 3 Minuti</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button id="audio-toggle-btn" class="bg-white/20 hover:bg-white/30 border border-white/40 px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 shadow" title="Attiva/Disattiva effetti sonori">
+                    <i class="fa-solid fa-volume-high text-amber-200" id="audio-icon"></i> <span id="audio-text">Audio ON</span>
+                </button>
+                <button id="btn-open-objectives" class="bg-amber-300 hover:bg-amber-400 text-gray-900 font-extrabold px-4 py-2 rounded-xl text-xs shadow-lg transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-bullseye"></i> 12 Obiettivi
+                </button>
+                <button id="btn-open-glossary" class="bg-white/25 hover:bg-white/35 text-white font-extrabold px-4 py-2 rounded-xl text-xs transition-all flex items-center gap-1.5 border border-white/30">
+                    <i class="fa-solid fa-book-open text-pink-200"></i> Glossario
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-6xl w-full mx-auto p-4 md:p-6 flex-grow space-y-6">
+
+        <!-- STUDENT PROFILE & TIMER SETTINGS BAR -->
+        <section class="vibrant-card rounded-2xl p-5 border-l-8 border-amber-500 shadow-lg">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                <div class="md:col-span-4">
+                    <label for="student-name" class="block text-xs font-extrabold uppercase text-purple-700 mb-1">
+                        <i class="fa-solid fa-user-graduate mr-1"></i> Nome e Cognome Studente
+                    </label>
+                    <input type="text" id="student-name" placeholder="Es. Alessia Bianchi" class="w-full bg-white border-2 border-purple-300 focus:border-cyan-500 rounded-xl px-3.5 py-2.5 text-sm font-bold text-gray-800 outline-none transition-all shadow-sm">
+                </div>
+                <div class="md:col-span-2">
+                    <label for="student-class" class="block text-xs font-extrabold uppercase text-pink-600 mb-1">
+                        <i class="fa-solid fa-school mr-1"></i> Classe
+                    </label>
+                    <input type="text" id="student-class" value="3ª B" placeholder="Es. 3ª B" class="w-full bg-white border-2 border-purple-300 focus:border-cyan-500 rounded-xl px-3.5 py-2.5 text-sm font-bold text-gray-800 outline-none transition-all shadow-sm">
+                </div>
+                <div class="md:col-span-3">
+                    <label for="timer-select" class="block text-xs font-extrabold uppercase text-cyan-700 mb-1">
+                        <i class="fa-solid fa-stopwatch mr-1"></i> Durata Timer Obiettivo
+                    </label>
+                    <select id="timer-select" class="w-full bg-white border-2 border-purple-300 focus:border-cyan-500 rounded-xl px-3.5 py-2.5 text-sm font-bold text-gray-800 outline-none cursor-pointer shadow-sm">
+                        <option value="180" selected>⚡ 3 Minuti (180s - Consigliato)</option>
+                        <option value="300">⏱️ 5 Minuti (300s - Esteso)</option>
+                        <option value="100">⏱️ 100 Secondi (Rapido)</option>
+                    </select>
+                </div>
+                <div class="md:col-span-3">
+                    <label for="error-mode" class="block text-xs font-extrabold uppercase text-emerald-700 mb-1">
+                        <i class="fa-solid fa-sliders mr-1"></i> Modalità Errori
+                    </label>
+                    <select id="error-mode" class="w-full bg-white border-2 border-purple-300 focus:border-cyan-500 rounded-xl px-3.5 py-2.5 text-sm font-bold text-gray-800 outline-none cursor-pointer shadow-sm">
+                        <option value="free" selected>✨ Avanzamento Libero (Corriggibile)</option>
+                        <option value="strict">🔒 Blocco su Errore</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- LIVE METRICS DASHBOARD BAR -->
+        <section class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="vibrant-card rounded-2xl p-4 flex items-center justify-between border-b-4 border-amber-500 shadow-md">
+                <div>
+                    <p class="text-xs font-bold text-amber-700 uppercase">Tempo (<span id="current-timer-label">03:00</span>)</p>
+                    <h3 id="timer-display" class="text-2xl font-extrabold font-mono text-amber-600">03:00</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-600 text-xl shadow-xs">
+                    <i class="fa-solid fa-stopwatch"></i>
+                </div>
+            </div>
+            <div class="vibrant-card rounded-2xl p-4 flex items-center justify-between border-b-4 border-pink-500 shadow-md">
+                <div>
+                    <p class="text-xs font-bold text-pink-700 uppercase">Velocità WPM</p>
+                    <h3 id="wpm-display" class="text-2xl font-extrabold font-mono text-pink-600">0 <span class="text-xs font-normal text-gray-500">WPM</span></h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-pink-100 border border-pink-300 flex items-center justify-center text-pink-600 text-xl shadow-xs">
+                    <i class="fa-solid fa-gauge-high"></i>
+                </div>
+            </div>
+            <div class="vibrant-card rounded-2xl p-4 flex items-center justify-between border-b-4 border-cyan-500 shadow-md">
+                <div>
+                    <p class="text-xs font-bold text-cyan-700 uppercase">Accuratezza</p>
+                    <h3 id="accuracy-display" class="text-2xl font-extrabold font-mono text-cyan-600">100%</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-cyan-100 border border-cyan-300 flex items-center justify-center text-cyan-600 text-xl shadow-xs">
+                    <i class="fa-solid fa-bullseye"></i>
+                </div>
+            </div>
+            <div class="vibrant-card rounded-2xl p-4 flex items-center justify-between border-b-4 border-emerald-500 shadow-md">
+                <div>
+                    <p class="text-xs font-bold text-emerald-700 uppercase">Errori / Tentativo</p>
+                    <h3 class="text-2xl font-extrabold font-mono text-gray-800">
+                        <span id="errors-display" class="text-pink-600">0</span> <span class="text-xs text-gray-400">|</span> <span id="attempts-display" class="text-emerald-600">#1</span>
+                    </h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-emerald-100 border border-emerald-300 flex items-center justify-center text-emerald-600 text-xl shadow-xs">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- TIMER PROGRESS BAR -->
+        <div class="w-full bg-gray-200 h-3.5 rounded-full overflow-hidden shadow-inner border border-indigo-100">
+            <div id="timer-bar" class="bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 h-full w-full transition-all duration-300"></div>
+        </div>
+
+        <!-- MAIN TYPING CARD -->
+        <section class="vibrant-card rounded-3xl p-6 md:p-8 space-y-6 shadow-xl relative overflow-hidden border border-purple-200">
+            
+            <!-- INSTRUCTIONS & DIFFICULTY SELECTOR -->
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 pb-4 border-b border-gray-200">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-ping"></span>
+                    <p class="text-sm font-bold text-gray-700">Seleziona il livello di Daily Routine ed esercitati per 3 minuti:</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <button id="btn-listen-text" class="bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow" title="Ascolta pronuncia inglese">
+                        <i class="fa-solid fa-ear-listen text-amber-200"></i> Ascolta Testo (EN)
+                    </button>
+                    <label for="text-select" class="text-xs font-bold text-purple-700 uppercase">Livello:</label>
+                    <select id="text-select" class="bg-white border-2 border-purple-300 text-purple-800 font-extrabold rounded-xl text-sm px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer shadow-sm">
+                        <option value="0">Livello 1: Morning Routine</option>
+                        <option value="1">Livello 2: School & Afternoon</option>
+                        <option value="2">Livello 3: Evening & Full Day</option>
+                        <option value="custom">✨ Testo Personalizzato Incollato</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- PROMINENT LIVE TYPING TIMER BANNER (Always visible directly above text) -->
+            <div id="typing-timer-banner" class="bg-gradient-to-r from-pink-500 via-purple-600 to-cyan-500 rounded-2xl p-4 text-white shadow-lg flex items-center justify-between border-2 border-white/40">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-xl shadow-inner">
+                        <i class="fa-solid fa-stopwatch animate-pulse text-amber-300"></i>
+                    </div>
+                    <div>
+                        <span class="block text-[10px] uppercase font-extrabold text-amber-200 tracking-wider">Timer Attivo in Digitazione</span>
+                        <span class="text-xs font-bold">Rimani concentrato e completa il testo!</span>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span id="banner-timer-display" class="font-mono text-3xl md:text-4xl font-extrabold tracking-wider drop-shadow-md">03:00</span>
+                </div>
+            </div>
+
+            <!-- CUSTOM TEXT INPUT PANEL (Hidden by default) -->
+            <div id="custom-text-panel" class="hidden bg-indigo-50/80 border-2 border-dashed border-purple-400 p-4 rounded-2xl space-y-3 shadow-inner">
+                <div class="flex justify-between items-center">
+                    <h4 class="font-extrabold text-xs uppercase text-purple-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-pen-to-square"></i> Inserisci o incolla qualsiasi testo in inglese su cui esercitarti
+                    </h4>
+                    <span class="text-xs text-gray-500">Max 600 caratteri</span>
+                </div>
+                <textarea id="custom-text-input" rows="3" placeholder="Digita o incolla qui il testo in inglese..." class="w-full p-3 bg-white border border-purple-300 rounded-xl text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"></textarea>
+                <div class="flex flex-col sm:flex-row gap-3 items-center justify-between">
+                    <div class="w-full sm:w-1/2">
+                        <input type="text" id="custom-translation-input" placeholder="Traduzione italiana di supporto (opzionale)" class="w-full p-2.5 bg-white border border-purple-300 rounded-xl text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm">
+                    </div>
+                    <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                        <div class="flex items-center gap-1 text-xs font-bold text-gray-700">
+                            <span>Target WPM:</span>
+                            <select id="custom-wpm-select" class="bg-white border border-purple-300 rounded-lg px-2 py-1 text-xs font-bold text-purple-700">
+                                <option value="15">15 WPM</option>
+                                <option value="20">20 WPM</option>
+                                <option value="25" selected>25 WPM</option>
+                                <option value="30">30 WPM</option>
+                                <option value="35">35 WPM</option>
+                            </select>
+                        </div>
+                        <button id="btn-load-custom" class="bg-gradient-to-r from-pink-500 to-purple-600 hover:opacity-95 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md">
+                            Carica Testo nell'Esercizio
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VOCABULARY KEYWORDS BADGES & TRANSLATION HINT -->
+            <div class="space-y-2.5">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-extrabold uppercase text-purple-800"><i class="fa-solid fa-key mr-1"></i> Vocaboli Chiave (Daily Routine):</span>
+                    </div>
+                    <span id="keywords-counter-pill" class="bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold px-3 py-1 rounded-full shadow-xs">Individuati: 0 / 5</span>
+                </div>
+                <div id="level-keywords" class="flex flex-wrap gap-2">
+                    <!-- Dynamic keyword badges populated via JS -->
+                </div>
+                <div class="bg-purple-50 border border-purple-200 rounded-xl px-4 py-2.5 text-xs text-purple-900 font-medium flex items-center justify-between gap-2 shadow-xs">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-language text-purple-600 text-sm"></i>
+                        <div><strong>Traduzione:</strong> <span id="translation-hint" class="text-gray-800 font-semibold">Caricamento traduzione...</span></div>
+                    </div>
+                    <div class="text-xs font-extrabold text-purple-700 bg-purple-100 px-3 py-1 rounded-lg border border-purple-300" id="wpm-target-hint">
+                        Target: ≥ 20 WPM
+                    </div>
+                </div>
+            </div>
+
+            <!-- TARGET TEXT CONTAINER & TYPING FIELD -->
+            <div class="relative bg-white border-2 border-purple-200 hover:border-purple-300 rounded-3xl p-6 md:p-8 space-y-4 shadow-inner cursor-text" onclick="focusTypingInput()">
+                
+                <!-- START PROMPT OVERLAY -->
+                <div id="start-prompt" class="absolute inset-0 bg-white/95 backdrop-blur-xs rounded-3xl z-20 flex flex-col items-center justify-center p-6 text-center transition-all duration-300 space-y-4">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500 to-purple-600 text-white flex items-center justify-center text-3xl shadow-lg animate-bounce">
+                        <i class="fa-solid fa-keyboard"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="text-xl md:text-2xl font-extrabold h-font text-purple-900">Pronto per iniziare l'esercizio?</h3>
+                        <p class="text-xs md:text-sm text-gray-600 font-medium max-w-md">Inserisci il tuo nome in alto e clicca sul pulsante sottostante per avviare il timer e digitare il testo in inglese.</p>
+                    </div>
+                    <button id="btn-start-large" class="bg-gradient-to-r from-pink-500 via-purple-600 to-cyan-500 hover:opacity-95 text-white font-extrabold text-sm md:text-base px-8 py-3.5 rounded-2xl shadow-xl transition-all flex items-center gap-2 border border-white/50">
+                        <i class="fa-solid fa-play"></i> Inizia Esercizio (3 Minuti)
+                    </button>
+                    <span class="text-[11px] text-gray-400 font-semibold">Caratteri totali del brano: <span id="char-total">0</span></span>
+                </div>
+
+                <!-- TEXT DISPLAY AREA -->
+                <div id="text-display" class="typing-font text-lg md:text-2xl leading-relaxed select-none text-gray-800 break-words min-h-[120px]">
+                    <!-- Dynamically injected characters -->
+                </div>
+
+                <!-- INVISIBLE / INTERACTIVE TYPING INPUT -->
+                <input type="text" id="typing-input" class="absolute opacity-0 pointer-events-none" autocomplete="off" autocapitalize="off" spellcheck="false" disabled>
+
+                <!-- BOTTOM CONTROLS & STATS INSIDE CARD -->
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100 text-xs font-bold text-gray-600">
+                    <div class="flex items-center gap-3">
+                        <button id="btn-pause" class="bg-amber-100 hover:bg-amber-200 text-amber-900 px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-xs border border-amber-300 disabled:opacity-50" disabled>
+                            <i class="fa-solid fa-pause"></i> <span id="pause-btn-text">Pausa</span>
+                        </button>
+                        <button id="btn-reset" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-xs border border-gray-300">
+                            <i class="fa-solid fa-rotate-right"></i> Ricomincia
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-2 text-purple-700">
+                        <i class="fa-solid fa-circle-info text-cyan-600"></i> Clicca ovunque sul testo per iniziare a digitare
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- REAL-TIME 12 CRITERIA CHECKLIST SECTION -->
+        <section class="vibrant-card rounded-3xl p-6 space-y-4 border border-purple-200 shadow-lg">
+            <div class="flex justify-between items-center border-b border-gray-200 pb-3">
+                <h3 class="font-extrabold text-lg h-font text-purple-800 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-amber-500"></i> I 12 Obiettivi & Criteri di Valutazione (3 Minuti)
+                </h3>
+                <span id="criteria-progress-badge" class="bg-cyan-100 text-cyan-800 border border-cyan-300 text-xs font-extrabold px-3 py-1 rounded-full shadow-xs">0 / 12 Raggiunti</span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 text-xs">
+                <!-- Criterion 1 -->
+                <div id="crit-complete" class="bg-white p-3.5 rounded-2xl border-2 border-gray-200 flex items-start gap-3 transition-all shadow-xs">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center shrink-0 font-bold crit-icon"><i class="fa-solid fa-xmark"></i></div>
+                    <div>
+                        <strong class="block text-gray-900 font-bold">1. Testo Completo</strong>
+                        <p class="text-gray-500">100% dei caratteri digitati entro i 3 minuti.</p>
+                    </div>
+                </div>
+                <!-- Criterion 2 -->
+                <div id="crit-time" class="bg-white p-3.5 rounded-2xl border-2 border-gray-200 flex items-start gap-3 transition-all shadow-xs">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center shrink-0 font-bold crit-icon"><i class="fa-solid fa-xmark"></i></div>
+                    <div>
+                        <strong class="block text-gray-900 font-bold">2. Margine di Tempo</strong>
+                        <p class="text-gray-500" id="crit-time-desc">Concludi con un buon margine sul timer.</p>
+                    </div>
+                </div>
+                <!-- Criterion 3 -->
+                <div id="crit-speed" class="bg-white p-3.5 rounded-2xl border-2 border-gray-200 flex items-start gap-3 transition-all shadow-xs">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center shrink-0 font-bold crit-icon"><i class="fa-solid fa-xmark"></i></div>
+                    <div>
+                        <strong class="block text-gray-900 font-bold">3. Velocità WPM</strong>
+                        <p class="text-gray-500" id="crit-speed-desc">Raggiungi la soglia minima del livello.</p>
+                    </div>
+                </div>
+                <!-- Criterion 4 -->
+                <div id="crit-speed-extra" class="bg-white p-3.5 rounded-2xl border-2 border-gray-200 flex items-start gap-3 transition-all shadow-xs">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center shrink-0 font-bold crit-icon"><i class="fa-solid fa-xmark"></i></div>
+                    <div>
+                        <strong class="block text-gray-900 font-bold">4. Super Velocità</strong>
+                        <p class="text-gray-500">Tocca o supera i 35 WPM complessivi.</p>
+                    </div>
+                </div>
+                <!-- Criterion 5 -->
+                <div id="crit-accuracy" class="bg-white p-3.5 rounded-2xl border-2 border-gray-200 flex items-start gap-3 transition-all shadow-xs">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center shrink-0 font-bold crit-icon"><i class="fa-solid fa-xmark"></i></div>
+                    <div>
+                        <strong class="block text-gray-900 font-bold">5. Precisione Ottimale</strong>
+                        <p class="text-gray-500">Accuratezza ≥ 90% (Stella d'Oro se ≥ 96%).</p>
+                    </div>
+                </div>
+                <!-- Criterion 6 -->
+                <div id="crit-accuracy-perfect" class="bg-white p-3.5 rounded-2xl border-2 border-gray-200 flex items-start gap-3 transition-all shadow-xs">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center shrink-0 font-bold crit-icon"><i class="fa-solid fa-xmark"></i></div>
+                    <div>
+                        <strong class="block text-gray-900 font-bold">6. Precisione 100%</strong>
+                        <p class="text-gray-500">Zero errori in assoluto nella prova.</p>
+                    </div>
+                </div>
+                <!-- Criterion 7 -->
+                <div id="crit-errors" class="bg-white p-3.5 rounded-2xl border-2 border-gray-200 flex items-start gap-3 transition-all shadow-xs">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center shrink-0 font-bold crit-icon"><i class="fa-solid fa-xmark"></i></div>
+                    <div>
+                        <strong class="block text-gray-900 font-bold">7. Controllo Errori</strong>
+                        <p class="text-gray-500">Massimo 5 errori totali commessi.</p>
+                    </div>
+                </div>
+                <!-- Criterion 8 -->
+                <div id="crit-keywords" class="bg-white p-3.5 rounded-2xl border-2 border-gray-200 flex items-start gap-3 transition-all shadow-xs">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center shrink-0 font-bold crit-icon"><i class="fa-solid fa-xmark"></i></div>
+                    <div>
+                        <strong class="block text-gray-900 font-bold">8. Vocaboli Chiave</strong>
+                        <p class="text-gray-500" id="crit-keywords-desc">Individua tutti i vocaboli target della routine.</p>
+                    </div>
+                </div>
+                <!-- Criterion 9 -->
+                <div id="crit-words" class="bg-white p-3.5 rounded-2xl border-2 border-gray-200 flex items-start gap-3 transition-all shadow-xs">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center shrink-0 font-bold crit-icon"><i class="fa-solid fa-xmark"></i></div>
+                    <div>
+                        <strong class="block text-gray-900 font-bold">9. Parole Esatte</strong>
+                        <p class="text-gray-500" id="crit-words-desc">Almeno il 90% delle parole senza errori.</p>
+                    </div>
+                </div>
+                <!-- Criterion 10 -->
+                <div id="crit-rhythm" class="bg-white p-3.5 rounded-2xl border-2 border-gray-200 flex items-start gap-3 transition-all shadow-xs">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center shrink-0 font-bold crit-icon"><i class="fa-solid fa-xmark"></i></div>
+                    <div>
+                        <strong class="block text-gray-900 font-bold">10. Ritmo Costante</strong>
+                        <p class="text-gray-500">Nessuna pausa superiore agli 8 secondi.</p>
+                    </div>
+                </div>
+                <!-- Criterion 11 -->
+                <div id="crit-stamina" class="bg-white p-3.5 rounded-2xl border-2 border-gray-200 flex items-start gap-3 transition-all shadow-xs">
+                    <div class="w-6 h-6 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center shrink-0 font-bold crit-icon"><i class="fa-solid fa-xmark"></i></div>
+                    <div>
+                        <strong class="block text-gray-900 font-bold">11. Resistenza Brano</strong>
+                        <p class="text-gray-500">Supera i 100 caratteri digitati corretti.</p>
+                    </div>
+                </div>
+                <!-- Criterion 12 -->
+            <div id="crit-master" class="bg-white p-3.5 rounded-2xl border-2 border-gray-200 flex items-start gap-3 transition-all shadow-xs">
+                <div class="w-6 h-6 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center shrink-0 font-bold crit-icon"><i class="fa-solid fa-xmark"></i></div>
+                <div>
+                    <strong class="block text-gray-900 font-bold">12. Master Inglese</strong>
+                    <p class="text-gray-500">Completa il brano e ascolta almeno una volta la pronuncia audio.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PREMI BONUS & MEDAGLIE SPECIALI -->
+        <div class="pt-4 border-t border-purple-200 space-y-3">
+            <div class="flex flex-wrap justify-between items-center gap-2">
+                <h4 class="font-extrabold text-base h-font text-pink-600 flex items-center gap-2">
+                    <i class="fa-solid fa-gift text-amber-500 animate-bounce"></i> Premi Bonus & Medaglie Speciali Sbloccabili
+                </h4>
+                <span id="bonus-points-badge" class="bg-gradient-to-r from-amber-400 to-pink-500 text-white text-xs font-extrabold px-3.5 py-1 rounded-full shadow">
+                    0 Punti Bonus XP
+                </span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                <!-- Bonus 1 -->
+                <div id="bonus-turbo" class="bg-gradient-to-br from-amber-50 to-orange-50 p-3.5 rounded-2xl border-2 border-amber-200 opacity-60 transition-all flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-lg shrink-0 shadow-xs bonus-icon">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <div>
+                        <span class="inline-block text-[10px] font-extrabold uppercase tracking-wider text-amber-700 bg-amber-200/70 px-2 py-0.5 rounded-full mb-0.5">+150 XP</span>
+                        <strong class="block text-gray-900 font-extrabold">Premio Fulmine</strong>
+                        <p class="text-gray-600 text-[11px]">Raggiungi 35+ WPM e completa il testo.</p>
+                    </div>
+                </div>
+                <!-- Bonus 2 -->
+                <div id="bonus-diamond" class="bg-gradient-to-br from-cyan-50 to-blue-50 p-3.5 rounded-2xl border-2 border-cyan-200 opacity-60 transition-all flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-100 text-cyan-600 flex items-center justify-center text-lg shrink-0 shadow-xs bonus-icon">
+                        <i class="fa-solid fa-gem"></i>
+                    </div>
+                    <div>
+                        <span class="inline-block text-[10px] font-extrabold uppercase tracking-wider text-cyan-800 bg-cyan-200/70 px-2 py-0.5 rounded-full mb-0.5">+200 XP</span>
+                        <strong class="block text-gray-900 font-extrabold">Mani di Diamante</strong>
+                        <p class="text-gray-600 text-[11px]">Completa il testo con 100% precisione (0 errori).</p>
+                    </div>
+                </div>
+                <!-- Bonus 3 -->
+                <div id="bonus-polyglot" class="bg-gradient-to-br from-purple-50 to-pink-50 p-3.5 rounded-2xl border-2 border-purple-200 opacity-60 transition-all flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-lg shrink-0 shadow-xs bonus-icon">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+                    <div>
+                        <span class="inline-block text-[10px] font-extrabold uppercase tracking-wider text-purple-800 bg-purple-200/70 px-2 py-0.5 rounded-full mb-0.5">+150 XP</span>
+                        <strong class="block text-gray-900 font-extrabold">Corona Poliglotta</strong>
+                        <p class="text-gray-600 text-[11px]">Tutte le keyword + ascolto pronuncia audio.</p>
+                    </div>
+                </div>
+                <!-- Bonus 4 -->
+                <div id="bonus-legend" class="bg-gradient-to-br from-emerald-50 to-teal-50 p-3.5 rounded-2xl border-2 border-emerald-200 opacity-60 transition-all flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg shrink-0 shadow-xs bonus-icon">
+                        <i class="fa-solid fa-medal"></i>
+                    </div>
+                    <div>
+                        <span class="inline-block text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-200/70 px-2 py-0.5 rounded-full mb-0.5">+300 XP</span>
+                        <strong class="block text-gray-900 font-extrabold">Coppa Campione</strong>
+                        <p class="text-gray-600 text-[11px]">Sblocca almeno 10 obiettivi su 12.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+        <!-- ATTEMPTS HISTORY TABLE SECTION -->
+        <section class="vibrant-card rounded-3xl p-6 space-y-4 border border-purple-200 shadow-lg">
+            <div class="flex justify-between items-center border-b border-gray-200 pb-3">
+                <h3 class="font-extrabold text-lg h-font text-purple-800 flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-cyan-600"></i> Storico Tentativi della Sessione
+                </h3>
+                <span id="history-count" class="text-xs font-bold text-gray-600">0 tentativi registrati</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-purple-100 text-purple-900 uppercase font-extrabold border-b border-purple-200">
+                        <tr>
+                            <th class="p-3 rounded-l-xl">Tentativo</th>
+                            <th class="p-3">Livello</th>
+                            <th class="p-3">Data & Ora</th>
+                            <th class="p-3">Velocità</th>
+                            <th class="p-3">Accuratezza</th>
+                            <th class="p-3">Errori</th>
+                            <th class="p-3 rounded-r-xl">Esito / Badge</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body" class="divide-y divide-gray-200 font-medium">
+                        <tr class="text-gray-500 text-center">
+                            <td colspan="7" class="p-4">Nessun tentativo completato in questa sessione. Avvia l'esercizio!</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-gray-200 py-4 px-6 text-center text-xs text-gray-600 mt-auto shadow-inner">
+        <p>Daily Routine Typing Master • Sviluppato per studenti di Terza Media • 12 Obiettivi di Apprendimento</p>
+    </footer>
+
+    <!-- GLOSSARY MODAL -->
+    <div id="glossary-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="vibrant-card rounded-3xl max-w-2xl w-full p-6 space-y-5 max-h-[85vh] overflow-y-auto border border-pink-300 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-gray-200 pb-3">
+                <h2 class="text-2xl font-bold h-font text-pink-600 flex items-center gap-2">
+                    <i class="fa-solid fa-book-open text-amber-500"></i> Glossario & Mini-Quiz Daily Routine
+                </h2>
+                <button id="close-glossary" class="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-800 flex items-center justify-center font-bold text-xl">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <p class="text-xs text-gray-600 font-medium">Clicca sul pulsante audio <i class="fa-solid fa-volume-high text-cyan-600"></i> per ascoltare la pronuncia in inglese di ogni vocabolo:</p>
+                <div id="glossary-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- Populated via JS -->
+                </div>
+
+                <!-- MINI QUIZ CARD -->
+                <div class="bg-indigo-50 p-5 rounded-2xl border border-indigo-200 space-y-3 mt-6 shadow-inner">
+                    <h4 class="font-extrabold text-indigo-900 flex items-center gap-2 text-sm">
+                        <i class="fa-solid fa-puzzle-piece text-amber-500"></i> Mini-Quiz di Verifica Vocaboli
+                    </h4>
+                    <p id="quiz-question" class="text-sm font-bold text-gray-900">Caricamento domanda...</p>
+                    <div id="quiz-options" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <!-- Populated via JS -->
+                    </div>
+                    <div id="quiz-feedback" class="text-xs font-bold"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OBJECTIVES GUIDE MODAL -->
+    <div id="objectives-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="vibrant-card rounded-3xl max-w-2xl w-full p-6 space-y-5 max-h-[88vh] overflow-y-auto border border-cyan-300 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-gray-200 pb-3">
+                <h2 class="text-2xl font-bold h-font text-cyan-700 flex items-center gap-2">
+                    <i class="fa-solid fa-bullseye text-amber-500"></i> I 12 Obiettivi & Criteri Ufficiali
+                </h2>
+                <button id="close-objectives" class="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-800 flex items-center justify-center font-bold text-xl">&times;</button>
+            </div>
+            <div class="space-y-4 text-sm text-gray-700">
+                <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-200 space-y-2 shadow-inner">
+                    <h4 class="font-extrabold text-purple-800 flex items-center gap-2 text-base">
+                        <i class="fa-solid fa-laptop-code text-cyan-600"></i> Elenco Completo Traguardi (3 Minuti):
+                    </h4>
+                    <ul class="list-disc pl-5 space-y-1.5 text-xs text-gray-700">
+                        <li><strong>1. Testo Completo:</strong> Completare il 100% del brano entro i 3 minuti.</li>
+                        <li><strong>2. Margine di Tempo:</strong> Concludere con almeno il 25% del timer residuo.</li>
+                        <li><strong>3. Velocità WPM:</strong> Raggiungere la soglia minima del livello (20, 25 o 30 WPM).</li>
+                        <li><strong>4. Super Velocità:</strong> Toccare o superare i 35 WPM.</li>
+                        <li><strong>5. Precisione Ottimale:</strong> Accuratezza ≥ 90% (Stella d'Oro se ≥ 96%).</li>
+                        <li><strong>6. Precisione 100%:</strong> Ottenere zero errori assoluti nella prova.</li>
+                        <li><strong>7. Controllo Errori:</strong> Non superare i 5 errori complessivi.</li>
+                        <li><strong>8. Vocaboli Chiave:</strong> Riconoscere e digitare tutte le keyword della routine.</li>
+                        <li><strong>9. Parole Esatte:</strong> Almeno il 90% delle parole senza errori ortografici.</li>
+                        <li><strong>10. Ritmo Costante:</strong> Nessuna pausa superiore agli 8 secondi.</li>
+                        <li><strong>11. Resistenza Brano:</strong> Superare i 100 caratteri digitati corretti.</li>
+                        <li><strong>12. Master Inglese:</strong> Ascoltare almeno una volta la pronuncia audio ed esercitarsi con successo.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FINAL REPORT MODAL -->
+    <div id="report-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="vibrant-card rounded-3xl max-w-xl w-full p-6 md:p-8 space-y-6 shadow-2xl border border-amber-400 max-h-[90vh] overflow-y-auto">
+            <div class="text-center space-y-2">
+                <div id="report-badge-icon" class="w-16 h-16 rounded-full bg-amber-100 border border-amber-400 text-amber-600 flex items-center justify-center text-3xl mx-auto shadow-md">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <h2 id="report-title" class="text-2xl md:text-3xl font-extrabold h-font text-amber-600">Complimenti!</h2>
+                <p id="report-subtitle" class="text-xs md:text-sm text-purple-700 font-medium">Hai completato l'esercizio di digitazione sui 3 minuti.</p>
+            </div>
+
+            <div class="bg-gray-50 border border-purple-200 rounded-2xl p-4 space-y-3 text-xs md:text-sm shadow-inner">
+                <div class="grid grid-cols-2 gap-2 border-b border-gray-200 pb-2">
+                    <div><strong>Studente:</strong> <span id="rep-student" class="text-purple-700 font-bold">-</span></div>
+                    <div><strong>Classe:</strong> <span id="rep-class" class="text-purple-700 font-bold">-</span></div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 border-b border-gray-200 pb-2">
+                    <div><strong>Data e Ora:</strong> <span id="rep-datetime" class="font-bold text-gray-700">-</span></div>
+                    <div><strong>Tentativo N°:</strong> <span id="rep-attempt" class="font-bold text-amber-600">-</span></div>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center pt-1">
+                    <div class="bg-white p-2.5 rounded-xl border border-gray-200 shadow-xs">
+                        <span class="block text-[10px] text-gray-500 uppercase font-bold">Velocità</span>
+                        <span id="rep-wpm" class="text-base font-extrabold text-pink-600">0 WPM</span>
+                    </div>
+                    <div class="bg-white p-2.5 rounded-xl border border-gray-200 shadow-xs">
+                        <span class="block text-[10px] text-gray-500 uppercase font-bold">Precisione</span>
+                        <span id="rep-acc" class="text-base font-extrabold text-cyan-600">0%</span>
+                    </div>
+                    <div class="bg-white p-2.5 rounded-xl border border-gray-200 shadow-xs">
+                        <span class="block text-[10px] text-gray-500 uppercase font-bold">Tempo Residuo</span>
+                        <span id="rep-time" class="text-base font-extrabold text-amber-600">0s</span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <div class="bg-white p-2.5 rounded-xl border border-gray-200 text-center shadow-xs">
+                        <span class="block text-[10px] text-gray-500 uppercase font-bold">Caratteri Totali</span>
+                        <span id="rep-chars" class="text-sm font-extrabold text-gray-800">0</span>
+                    </div>
+                    <div class="bg-white p-2.5 rounded-xl border border-gray-200 text-center shadow-xs">
+                        <span class="block text-[10px] text-gray-500 uppercase font-bold">Obiettivi Raggiunti</span>
+                        <span id="rep-criteria" class="text-sm font-extrabold text-emerald-600">0 / 12</span>
+                    </div>
+                </div>
+                <!-- PREMI BONUS SBLOCCATI NEL REPORT -->
+                <div class="bg-gradient-to-r from-amber-50 via-pink-50 to-purple-50 p-3 rounded-xl border border-amber-300 space-y-1.5">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[11px] font-extrabold uppercase text-amber-800"><i class="fa-solid fa-gift mr-1"></i> Premi Bonus Sbloccati:</span>
+                        <span id="rep-bonus-xp" class="text-xs font-extrabold text-pink-600">+0 XP</span>
+                    </div>
+                    <div id="rep-bonus-list" class="flex flex-wrap gap-1.5 text-[11px] font-bold text-gray-700">
+                        <span>Nessun premio bonus sbloccato in questo tentativo.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                <button id="btn-download-report" class="flex-1 bg-gradient-to-r from-pink-500 via-purple-600 to-cyan-500 hover:opacity-95 text-white font-extrabold py-3 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-2 shadow-xl border border-white/40">
+                    <i class="fa-solid fa-download"></i> Scarica Report Ufficiale (.TXT)
+                </button>
+                <button id="btn-copy-report" class="bg-purple-100 hover:bg-purple-200 text-purple-800 border border-purple-300 font-extrabold py-3 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-2 shadow-xs">
+                    <i class="fa-solid fa-copy"></i> Copia negli Appunti
+                </button>
+            </div>
+            <div class="text-center">
+                <button id="btn-close-report" class="text-xs font-bold text-gray-500 hover:text-gray-800 underline">
+                    Chiudi e Torna all'App
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT APPLICATION LOGIC -->
+    <script>
+        // DATA: Daily Routine Texts for Grade 8 (Terza Media)
+        const routineTexts = [
+            {
+                levelName: "Livello 1: Morning Routine",
+                targetWpm: 20,
+                defaultTimer: 180,
+                keywords: ["always", "wake up", "brush my teeth", "get dressed", "have breakfast"],
+                english: "I always wake up at seven o'clock in the morning. First, I brush my teeth and wash my face. Then I get dressed in my bedroom and I have breakfast with my family in the kitchen.",
+                italian: "Mi sveglio sempre alle sette del mattino. Prima mi lavo i denti e mi lavo la faccia. Poi mi vesto in camera mia e faccio colazione con la mia famiglia in cucina."
+            },
+            {
+                levelName: "Livello 2: School & Afternoon",
+                targetWpm: 25,
+                defaultTimer: 180,
+                keywords: ["usually", "catch the bus", "lessons start", "have lunch", "do my homework"],
+                english: "I usually leave home at half past seven and catch the bus to school. My lessons start at eight o'clock. At one o'clock I have lunch, and in the afternoon I do my homework.",
+                italian: "Di solito esco di casa alle sette e mezza e prendo l'autobus per andare a scuola. Le mie lezioni iniziano alle otto. All'una pranzo e nel pomeriggio faccio i compiti."
+            },
+            {
+                levelName: "Livello 3: Evening & Full Day",
+                targetWpm: 30,
+                defaultTimer: 180,
+                keywords: ["sometimes", "pack my schoolbag", "have dinner", "take a shower", "go to bed"],
+                english: "After studying, I sometimes play sports with my friends. In the evening, I have dinner with my parents, pack my schoolbag for the next day, take a warm shower and go to bed at ten.",
+                italian: "Dopo aver studiato, a volte faccio sport con i miei amici. La sera ceno con i miei genitori, preparo lo zaino per il giorno dopo, faccio una doccia calda e vado a letto alle dieci."
+            }
+        ];
+
+        // GLOSSARY VOCABULARY
+        const glossaryWords = [
+            { en: "Wake up", it: "Svegliarsi", ex: "I wake up at 7:00 AM." },
+            { en: "Brush teeth", it: "Lavarsi i denti", ex: "I brush my teeth every morning." },
+            { en: "Have breakfast", it: "Fare colazione", ex: "We have breakfast together." },
+            { en: "Catch the bus", it: "Prendere l'autobus", ex: "She catches the bus to school." },
+            { en: "Do homework", it: "Fare i compiti", ex: "I do my homework in the afternoon." },
+            { en: "Pack schoolbag", it: "Preparare lo zaino", ex: "Pack your schoolbag for tomorrow." },
+            { en: "Have dinner", it: "Cenare", ex: "We have dinner at 8 PM." },
+            { en: "Go to bed", it: "Andare a letto", ex: "I go to bed at 10 PM." }
+        ];
+
+        // MINI QUIZ QUESTIONS
+        const quizQuestions = [
+            { q: "Come si traduce 'Fare colazione' in inglese?", options: ["Have breakfast", "Make lunch", "Take breakfast", "Do breakfast"], correct: 0 },
+            { q: "Quale verbo si usa per 'Lavarsi i denti'?", options: ["Wash teeth", "Brush teeth", "Clean teeth", "Clean mouth"], correct: 1 },
+            { q: "Cosa significa 'Pack my schoolbag'?", options: ["Comprare lo zaino", "Lavare lo zaino", "Preparare lo zaino", "Dimenticare lo zaino"], correct: 2 },
+            { q: "Quale avverbio indica 'di solito'?", options: ["Always", "Sometimes", "Usually", "Never"], correct: 2 }
+        ];
+
+        // APP STATE VARIABLES
+        let INITIAL_TIME = 180; // 3 minuti default
+        let timeLeft = INITIAL_TIME;
+        let timerInterval = null;
+        let isStarted = false;
+        let isPaused = false;
+        let isFinished = false;
+        let attemptsCount = 1;
+        let selectedTextIndex = 0;
+        let isCustomMode = false;
+        let customLevelData = {
+            levelName: "Testo Personalizzato",
+            targetWpm: 25,
+            defaultTimer: 180,
+            keywords: ["custom text", "daily routine", "practice"],
+            english: "In the morning I wake up early, have a healthy breakfast and get ready for my school day.",
+            italian: "Testo personalizzato inserito dall'utente."
+        };
+        let targetText = "";
+        let currentIndex = 0;
+        let typedCharacters = 0;
+        let totalMistakesMade = 0;
+        let uncorrectedErrors = 0;
+        let soundEnabled = true;
+        let sessionAttemptsHistory = [];
+        let lastKeypressTimestamp = 0;
+        let steadyRhythmFlag = true;
+        let audioListenedFlag = false;
+
+        // DOM ELEMENTS
+        const textDisplay = document.getElementById('text-display');
+        const typingInput = document.getElementById('typing-input');
+        const timerDisplay = document.getElementById('timer-display');
+        const timerBar = document.getElementById('timer-bar');
+        const timerSelect = document.getElementById('timer-select');
+        const hudTimerDisplay = document.getElementById('hud-timer-display');
+        const stickyHud = document.getElementById('sticky-hud');
+        const hudWpm = document.getElementById('hud-wpm');
+        const hudAcc = document.getElementById('hud-acc');
+        const hudKw = document.getElementById('hud-kw');
+        const wpmDisplay = document.getElementById('wpm-display');
+        const accuracyDisplay = document.getElementById('accuracy-display');
+        const errorsDisplay = document.getElementById('errors-display');
+        const attemptsDisplay = document.getElementById('attempts-display');
+        const charTotalDisplay = document.getElementById('char-total');
+        const textSelect = document.getElementById('text-select');
+        const customTextPanel = document.getElementById('custom-text-panel');
+        const customTextInput = document.getElementById('custom-text-input');
+        const customTranslationInput = document.getElementById('custom-translation-input');
+        const customWpmSelect = document.getElementById('custom-wpm-select');
+        const btnLoadCustom = document.getElementById('btn-load-custom');
+        const translationHint = document.getElementById('translation-hint');
+        const wpmTargetHint = document.getElementById('wpm-target-hint');
+        const startPrompt = document.getElementById('start-prompt');
+        const btnStartLarge = document.getElementById('btn-start-large');
+        const btnPause = document.getElementById('btn-pause');
+        const pauseBtnText = document.getElementById('pause-btn-text');
+        const btnReset = document.getElementById('btn-reset');
+        const audioToggleBtn = document.getElementById('audio-toggle-btn');
+        const audioIcon = document.getElementById('audio-icon');
+        const audioText = document.getElementById('audio-text');
+
+        // FORMAT SECONDS TO MM:SS
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function getCurrentLevelData() {
+            if (isCustomMode) return customLevelData;
+            return routineTexts[selectedTextIndex];
+        }
+
+        // SYNTHESIZED SOUNDS (Web Audio API)
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'key') {
+                    osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.05);
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.12);
+                } else if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                    osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08);
+                    osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.16);
+                    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.35);
+                }
+            } catch(e) {}
+        }
+
+        // TEXT-TO-SPEECH (English)
+        function speakEnglish(text) {
+            audioListenedFlag = true;
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-GB';
+                utterance.rate = 0.9;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function loadText(index) {
+            const data = getCurrentLevelData();
+            targetText = data.english;
+            if (translationHint) translationHint.innerText = data.italian;
+            if (charTotalDisplay) charTotalDisplay.innerText = targetText.length;
+            audioListenedFlag = false;
+            
+            if (data.defaultTimer && !isCustomMode) {
+                timerSelect.value = String(data.defaultTimer);
+                INITIAL_TIME = data.defaultTimer;
+                timeLeft = INITIAL_TIME;
+                timerDisplay.innerText = formatTime(timeLeft);
+                hudTimerDisplay.innerText = formatTime(timeLeft);
+                const currentTimerLabel = document.getElementById('current-timer-label');
+                if (currentTimerLabel) currentTimerLabel.innerText = formatTime(INITIAL_TIME);
+            }
+
+            if (wpmTargetHint) wpmTargetHint.innerText = `Target: ≥ ${data.targetWpm} WPM`;
+            const speedDesc = document.getElementById('crit-speed-desc');
+            if (speedDesc) speedDesc.innerHTML = `Raggiungi almeno <strong>${data.targetWpm} WPM</strong> per questo livello.`;
+
+            const levelKeywords = document.getElementById('level-keywords');
+            if (levelKeywords) {
+                levelKeywords.innerHTML = data.keywords.map((kw, idx) => `
+                    <button id="kw-badge-${idx}" onclick="speakEnglish('${kw.replace(/'/g, "\\'")}')" class="bg-white border-2 border-purple-200 hover:border-purple-400 text-purple-900 font-bold px-3 py-1 rounded-full transition-all flex items-center gap-1.5 shadow-xs" title="Ascolta pronuncia">
+                        <i class="fa-regular fa-circle text-[10px] kw-icon text-amber-500"></i>
+                        <span>${kw}</span>
+                        <i class="fa-solid fa-volume-low text-[10px] text-purple-500 opacity-80"></i>
+                    </button>
+                `).join('');
+            }
+            const kwCounter = document.getElementById('keywords-counter-pill');
+            if (kwCounter) kwCounter.innerText = `Individuati: 0 / ${data.keywords.length}`;
+            if (hudKw) hudKw.innerText = `0/${data.keywords.length}`;
+            
+            if (textDisplay) {
+                textDisplay.innerHTML = targetText.split('').map((char, i) => {
+                    return `<span id="char-${i}">${char}</span>`;
+                }).join('');
+
+                if(textDisplay.children[0]) {
+                    textDisplay.children[0].classList.add('char-current');
+                }
+            }
+
+            updateCriteriaUI({
+                isComplete: false,
+                timeRemaining: INITIAL_TIME,
+                accuracy: 100,
+                wpm: 0,
+                errorsCount: 0,
+                keywordsMatched: 0,
+                keywordsTotal: data.keywords.length,
+                correctWordsCount: 0,
+                totalWordsCount: targetText.trim().split(/\s+/).length,
+                steadyRhythm: true,
+                typedChars: 0,
+                audioListened: false
+            });
+        }
+
+        function initGlossary() {
+            const container = document.getElementById('glossary-list');
+            if (!container) return;
+            container.innerHTML = glossaryWords.map(item => `
+                <div class="bg-white border border-purple-200 p-3.5 rounded-2xl flex items-center justify-between shadow-xs hover:border-purple-400 transition-all">
+                    <div>
+                        <div class="font-extrabold text-purple-900 text-sm flex items-center gap-1.5 cursor-pointer hover:underline" onclick="speakEnglish('${item.en.replace(/'/g, "\\'")}')">
+                            <i class="fa-solid fa-volume-high text-xs text-amber-500"></i> ${item.en}
+                        </div>
+                        <div class="text-xs text-gray-700 font-medium">${item.it}</div>
+                        <div class="text-[10px] text-gray-500 italic">"${item.ex}"</div>
+                    </div>
+                    <button onclick="speakEnglish('${item.en.replace(/'/g, "\\'")}')" class="w-8 h-8 rounded-full bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-700 hover:bg-purple-100 transition-all">
+                        <i class="fa-solid fa-ear-listen text-xs"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function initMiniQuiz() {
+            const qObj = quizQuestions[Math.floor(Math.random() * quizQuestions.length)];
+            const qEl = document.getElementById('quiz-question');
+            if (qEl) qEl.innerText = qObj.q;
+            const optionsContainer = document.getElementById('quiz-options');
+            if (!optionsContainer) return;
+            const feedback = document.getElementById('quiz-feedback');
+            if (feedback) feedback.innerText = "";
+
+            optionsContainer.innerHTML = qObj.options.map((opt, idx) => `
+                <button onclick="checkQuizAnswer(${idx}, ${qObj.correct})" class="bg-white hover:bg-indigo-50 border border-indigo-200 font-bold text-xs p-3 rounded-xl transition-all text-left text-gray-800 shadow-xs">
+                    ${String.fromCharCode(65 + idx)}. ${opt}
+                </button>
+            `).join('');
+        }
+
+        function checkQuizAnswer(selected, correct) {
+            const feedback = document.getElementById('quiz-feedback');
+            if (!feedback) return;
+            if (selected === correct) {
+                feedback.innerHTML = `<span class="text-emerald-600"><i class="fa-solid fa-check"></i> Esatto! Ottimo lavoro.</span>`;
+                playSound('success');
+                setTimeout(initMiniQuiz, 2200);
+            } else {
+                feedback.innerHTML = `<span class="text-red-600"><i class="fa-solid fa-xmark"></i> Sbagliato, riprova!</span>`;
+                playSound('error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initGlossary();
+            initMiniQuiz();
+            loadText(0);
+
+            if (textSelect) {
+                textSelect.addEventListener('change', (e) => {
+                    if (e.target.value === 'custom') {
+                        if (customTextPanel) customTextPanel.classList.remove('hidden');
+                        isCustomMode = true;
+                    } else {
+                        if (customTextPanel) customTextPanel.classList.add('hidden');
+                        isCustomMode = false;
+                        selectedTextIndex = parseInt(e.target.value, 10);
+                    }
+                    resetExercise(true);
+                });
+            }
+
+            if (timerSelect) {
+                timerSelect.addEventListener('change', (e) => {
+                    INITIAL_TIME = parseInt(e.target.value, 10) || 180;
+                    timeLeft = INITIAL_TIME;
+                    if (timerDisplay) timerDisplay.innerText = formatTime(timeLeft);
+                    if (hudTimerDisplay) hudTimerDisplay.innerText = formatTime(timeLeft);
+                    const currentTimerLabel = document.getElementById('current-timer-label');
+                    if (currentTimerLabel) currentTimerLabel.innerText = formatTime(INITIAL_TIME);
+                    resetExercise(true);
+                });
+            }
+
+            if (btnLoadCustom) {
+                btnLoadCustom.addEventListener('click', () => {
+                    const txt = customTextInput ? customTextInput.value.trim() : "";
+                    const tr = customTranslationInput ? customTranslationInput.value.trim() : "";
+                    const targetW = customWpmSelect ? parseInt(customWpmSelect.value, 10) || 25 : 25;
+
+                    if (txt.length < 10) {
+                        alertBox("Inserisci un testo in inglese più lungo (almeno 10 caratteri).");
+                        return;
+                    }
+
+                    const words = txt.split(/\s+/).filter(w => w.length > 3);
+                    const keywords = words.slice(0, 4);
+                    if(keywords.length === 0) keywords.push("routine", "practice");
+
+                    customLevelData = {
+                        levelName: "Testo Personalizzato",
+                        targetWpm: targetW,
+                        defaultTimer: INITIAL_TIME,
+                        keywords: keywords,
+                        english: txt,
+                        italian: tr || "Traduzione personalizzata."
+                    };
+
+                    if (customTextPanel) customTextPanel.classList.add('hidden');
+                    loadText(0);
+                    resetExercise(true);
+                });
+            }
+
+            if (audioToggleBtn) {
+                audioToggleBtn.addEventListener('click', () => {
+                    soundEnabled = !soundEnabled;
+                    if (soundEnabled) {
+                        if (audioIcon) audioIcon.className = "fa-solid fa-volume-high text-amber-200";
+                        if (audioText) audioText.innerText = "Audio ON";
+                    } else {
+                        if (audioIcon) audioIcon.className = "fa-solid fa-volume-xmark text-pink-200";
+                        if (audioText) audioText.innerText = "Audio OFF";
+                    }
+                });
+            }
+
+            if (btnStartLarge) btnStartLarge.addEventListener('click', startExercise);
+            
+            if (typingInput) {
+                typingInput.addEventListener('input', handleTyping);
+                typingInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace') {
+                        handleBackspace();
+                    }
+                });
+            }
+
+            if (btnPause) btnPause.addEventListener('click', togglePause);
+            if (btnReset) btnReset.addEventListener('click', () => resetExercise(true));
+
+            const listenBtn = document.getElementById('btn-listen-text');
+            if (listenBtn) {
+                listenBtn.addEventListener('click', () => {
+                    speakEnglish(targetText);
+                });
+            }
+
+            const objModal = document.getElementById('objectives-modal');
+            const openObjBtn = document.getElementById('btn-open-objectives');
+            const closeObjBtn = document.getElementById('close-objectives');
+            if (openObjBtn && objModal) openObjBtn.addEventListener('click', () => objModal.classList.remove('hidden'));
+            if (closeObjBtn && objModal) closeObjBtn.addEventListener('click', () => objModal.classList.add('hidden'));
+
+            const glossModal = document.getElementById('glossary-modal');
+            const openGlossBtn = document.getElementById('btn-open-glossary');
+            const closeGlossBtn = document.getElementById('close-glossary');
+            if (openGlossBtn && glossModal) openGlossBtn.addEventListener('click', () => glossModal.classList.remove('hidden'));
+            if (closeGlossBtn && glossModal) closeGlossBtn.addEventListener('click', () => glossModal.classList.add('hidden'));
+
+            const reportModal = document.getElementById('report-modal');
+            const closeReportBtn = document.getElementById('btn-close-report');
+            const downloadReportBtn = document.getElementById('btn-download-report');
+            const copyReportBtn = document.getElementById('btn-copy-report');
+            if (closeReportBtn && reportModal) closeReportBtn.addEventListener('click', () => reportModal.classList.add('hidden'));
+            if (downloadReportBtn) downloadReportBtn.addEventListener('click', downloadReportTXT);
+            if (copyReportBtn) copyReportBtn.addEventListener('click', copyReportToClipboard);
+
+            window.addEventListener('scroll', () => {
+                if (stickyHud) {
+                    if (isStarted && window.scrollY > 280) {
+                        stickyHud.classList.remove('-translate-y-full');
+                    } else {
+                        stickyHud.classList.add('-translate-y-full');
+                    }
+                }
+            });
+        });
+
+        function focusTypingInput() {
+            if (!isStarted && !isFinished) {
+                startExercise();
+            }
+            if (!isPaused && !isFinished && typingInput) {
+                typingInput.focus();
+            }
+        }
+
+        function scrollToTopAndFocus() {
+            window.scrollTo({ top: 120, behavior: 'smooth' });
+            setTimeout(focusTypingInput, 300);
+        }
+
+        function startExercise() {
+            const studentNameInput = document.getElementById('student-name');
+            if (studentNameInput && !studentNameInput.value.trim()) {
+                studentNameInput.value = "Studente 3ª Media";
+            }
+
+            isStarted = true;
+            isPaused = false;
+            if (startPrompt) startPrompt.classList.add('opacity-0', 'pointer-events-none');
+            if (typingInput) typingInput.removeAttribute('disabled');
+            if (typingInput) typingInput.focus();
+            if (btnPause) btnPause.removeAttribute('disabled');
+
+            const hudStatus = document.getElementById('hud-status');
+            if (hudStatus) hudStatus.innerText = "In corso (3 Minuti)...";
+            
+            if (!timerInterval) {
+                lastKeypressTimestamp = Date.now();
+                timerInterval = setInterval(updateTimer, 1000);
+            }
+        }
+
+        function updateTimer() {
+            if (isPaused || isFinished) return;
+
+            if (Date.now() - lastKeypressTimestamp > 8000 && typedCharacters > 0) {
+                steadyRhythmFlag = false;
+            }
+
+            if (timeLeft > 0) {
+                timeLeft--;
+                const timeFormatted = formatTime(timeLeft);
+                if (timerDisplay) timerDisplay.innerText = timeFormatted;
+                if (hudTimerDisplay) hudTimerDisplay.innerText = timeFormatted;
+                const bannerTimerDisplay = document.getElementById('banner-timer-display');
+                if (bannerTimerDisplay) bannerTimerDisplay.innerText = timeFormatted;
+                
+                const pct = (timeLeft / INITIAL_TIME) * 100;
+                if (timerBar) timerBar.style.width = `${pct}%`;
+
+                evaluateLiveMetrics();
+            } else {
+                endExercise(false);
+            }
+        }
+
+        function handleTyping(e) {
+            if (!isStarted || isPaused || isFinished || !typingInput) return;
+
+            const inputVal = typingInput.value;
+            if (!inputVal) return;
+
+            const typedChar = inputVal.slice(-1);
+            typingInput.value = "";
+
+            lastKeypressTimestamp = Date.now();
+            const expectedChar = targetText[currentIndex];
+            const errorModeEl = document.getElementById('error-mode');
+            const errorMode = errorModeEl ? errorModeEl.value : 'free';
+
+            if (typedChar === expectedChar) {
+                playSound('key');
+                const charSpan = document.getElementById(`char-${currentIndex}`);
+                if (charSpan) charSpan.className = "char-correct";
+                currentIndex++;
+                typedCharacters++;
+
+                if (currentIndex < targetText.length) {
+                    const nextSpan = document.getElementById(`char-${currentIndex}`);
+                    if (nextSpan) nextSpan.className = "char-current";
+                }
+
+                checkKeywordsProgress();
+
+                if (currentIndex >= targetText.length) {
+                    endExercise(true);
+                }
+            } else {
+                playSound('error');
+                totalMistakesMade++;
+                
+                if (errorMode === 'strict') {
+                    if (textDisplay) {
+                        textDisplay.classList.add('shake');
+                        setTimeout(() => textDisplay.classList.remove('shake'), 300);
+                    }
+                } else {
+                    uncorrectedErrors++;
+                    const charSpan = document.getElementById(`char-${currentIndex}`);
+                    if (charSpan) charSpan.className = "char-incorrect";
+                    currentIndex++;
+                    typedCharacters++;
+
+                    if (currentIndex < targetText.length) {
+                        const nextSpan = document.getElementById(`char-${currentIndex}`);
+                        if (nextSpan) nextSpan.className = "char-current";
+                    }
+
+                    checkKeywordsProgress();
+
+                    if (currentIndex >= targetText.length) {
+                        endExercise(true);
+                    }
+                }
+            }
+
+            if (errorsDisplay) errorsDisplay.innerText = uncorrectedErrors;
+            evaluateLiveMetrics();
+        }
+
+        function handleBackspace() {
+            if (!isStarted || isPaused || isFinished) return;
+            const errorModeEl = document.getElementById('error-mode');
+            const errorMode = errorModeEl ? errorModeEl.value : 'free';
+            if (errorMode === 'free' && currentIndex > 0) {
+                const prevSpan = document.getElementById(`char-${currentIndex}`);
+                if (prevSpan) prevSpan.className = "";
+                currentIndex--;
+                const currSpan = document.getElementById(`char-${currentIndex}`);
+                if (currSpan) currSpan.className = "char-current";
+                if (uncorrectedErrors > 0) uncorrectedErrors--;
+                if (errorsDisplay) errorsDisplay.innerText = uncorrectedErrors;
+                evaluateLiveMetrics();
+            }
+        }
+
+        function checkKeywordsProgress() {
+            const currentData = getCurrentLevelData();
+            const typedSoFar = targetText.slice(0, currentIndex);
+            let matchedCount = 0;
+
+            currentData.keywords.forEach((kw, idx) => {
+                const badge = document.getElementById(`kw-badge-${idx}`);
+                if (typedSoFar.toLowerCase().includes(kw.toLowerCase())) {
+                    matchedCount++;
+                    if (badge) {
+                        badge.className = "bg-emerald-50 border-2 border-emerald-400 text-emerald-800 font-bold px-3 py-1 rounded-full transition-all flex items-center gap-1.5 shadow-xs";
+                        const kwIcon = badge.querySelector('.kw-icon');
+                        if (kwIcon) kwIcon.className = "fa-solid fa-circle-check text-[10px] text-emerald-600 kw-icon";
+                    }
+                }
+            });
+
+            const kwCounter = document.getElementById('keywords-counter-pill');
+            if (kwCounter) kwCounter.innerText = `Individuati: ${matchedCount} / ${currentData.keywords.length}`;
+            if (hudKw) hudKw.innerText = `${matchedCount}/${currentData.keywords.length}`;
+            return matchedCount;
+        }
+
+        function evaluateLiveMetrics() {
+            const elapsedSeconds = Math.max(1, INITIAL_TIME - timeLeft);
+            const timeSpentMinutes = elapsedSeconds / 60;
+            const wordsTyped = typedCharacters / 5;
+            const wpm = Math.round(wordsTyped / timeSpentMinutes) || 0;
+            
+            let accuracy = 100;
+            const totalKeystrokes = Math.max(typedCharacters, typedCharacters + totalMistakesMade);
+            if (totalKeystrokes > 0) {
+                const effectiveErrors = Math.max(uncorrectedErrors, totalMistakesMade);
+                accuracy = Math.max(0, Math.round(((totalKeystrokes - effectiveErrors) / totalKeystrokes) * 100));
+            }
+
+            if (wpmDisplay) wpmDisplay.innerHTML = `${wpm} <span class="text-xs font-normal text-gray-500">WPM</span>`;
+            if (accuracyDisplay) accuracyDisplay.innerText = `${accuracy}%`;
+            if (hudWpm) hudWpm.innerText = wpm;
+            if (hudAcc) hudAcc.innerText = `${accuracy}%`;
+
+            const currentData = getCurrentLevelData();
+            const matchedKw = checkKeywordsProgress();
+            const wordsArr = targetText.trim().split(/\s+/);
+            const typedWordsArr = targetText.slice(0, currentIndex).trim().split(/\s+/);
+            let correctWords = 0;
+            typedWordsArr.forEach((w, i) => {
+                if (wordsArr[i] && w === wordsArr[i]) correctWords++;
+            });
+
+            const wordAccuracyPct = wordsArr.length > 0 ? Math.round((correctWords / wordsArr.length) * 100) : 0;
+
+            const criteriaParams = {
+                isComplete: currentIndex >= targetText.length,
+                timeRemaining: timeLeft,
+                accuracy: accuracy,
+                wpm: wpm,
+                errorsCount: uncorrectedErrors,
+                keywordsMatched: matchedKw,
+                keywordsTotal: currentData.keywords.length,
+                correctWordsCount: correctWords,
+                totalWordsCount: wordsArr.length,
+                steadyRhythm: steadyRhythmFlag,
+                typedChars: typedCharacters,
+                audioListened: audioListenedFlag
+            };
+
+            updateCriteriaUI(criteriaParams);
+            return criteriaParams;
+        }
+
+        function updateCriteriaUI(params) {
+            const targetWpm = getCurrentLevelData().targetWpm;
+            const wordAccuracyPct = params.totalWordsCount > 0 
+                ? Math.round((params.correctWordsCount / params.totalWordsCount) * 100) 
+                : 0;
+
+            const kwDesc = document.getElementById('crit-keywords-desc');
+            if (kwDesc) kwDesc.innerHTML = `Individua e scrivi bene tutte le <strong>vocaboli target</strong> (${params.keywordsMatched}/${params.keywordsTotal}).`;
+            
+            const wordsDesc = document.getElementById('crit-words-desc');
+            if (wordsDesc) wordsDesc.innerHTML = `Almeno il <strong>90% delle parole</strong> senza errori (${params.correctWordsCount}/${params.totalWordsCount} - ${wordAccuracyPct}%).`;
+            
+            const minTimeBonus = Math.round(INITIAL_TIME * 0.25);
+            const timeDesc = document.querySelector('#crit-time p');
+            if (timeDesc) timeDesc.innerHTML = `Concludi con almeno <strong>${formatTime(minTimeBonus)}</strong> residui sul timer.`;
+
+            const checks = {
+                'crit-complete': params.isComplete,
+                'crit-time': params.isComplete && params.timeRemaining >= minTimeBonus,
+                'crit-speed': params.wpm >= targetWpm && params.typedChars > 0,
+                'crit-speed-extra': params.wpm >= 35 && params.typedChars > 0,
+                'crit-accuracy': params.accuracy >= 90 && params.typedChars > 0,
+                'crit-accuracy-perfect': params.accuracy === 100 && params.typedChars > 10,
+                'crit-errors': params.errorsCount <= 5 && params.typedChars > 0,
+                'crit-keywords': params.keywordsMatched === params.keywordsTotal && params.keywordsTotal > 0,
+                'crit-words': wordAccuracyPct >= 90 && params.typedChars > 0,
+                'crit-rhythm': params.steadyRhythm && params.typedChars > 0,
+                'crit-stamina': params.typedChars >= 100,
+                'crit-master': params.isComplete && params.audioListened
+            };
+
+            let achievedCount = 0;
+            Object.keys(checks).forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const icon = el.querySelector('.crit-icon');
+                if (checks[id]) {
+                    el.className = "bg-emerald-50 p-3.5 rounded-2xl border-2 border-emerald-500 flex items-start gap-3 transition-all shadow-xs";
+                    if (icon) {
+                        icon.className = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 font-bold crit-icon text-xs shadow-xs";
+                        icon.innerHTML = `<i class="fa-solid fa-check"></i>`;
+                    }
+                    achievedCount++;
+                } else {
+                    el.className = "bg-white p-3.5 rounded-2xl border-2 border-gray-200 flex items-start gap-3 transition-all shadow-xs";
+                    if (icon) {
+                        icon.className = "w-6 h-6 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center shrink-0 font-bold crit-icon text-xs";
+                        icon.innerHTML = `<i class="fa-solid fa-xmark"></i>`;
+                    }
+                }
+            });
+
+            const criteriaProgressBadge = document.getElementById('criteria-progress-badge');
+            if (criteriaProgressBadge) criteriaProgressBadge.innerText = `${achievedCount} / 12 Raggiunti`;
+
+            updateBonusRewards(params, achievedCount);
+        }
+
+        function calculateBonusRewards(params, achievedCount) {
+            const rewards = [
+                {
+                    id: 'bonus-turbo',
+                    name: '⚡ Premio Fulmine (+150 XP)',
+                    xp: 150,
+                    unlocked: params.isComplete && params.wpm >= 35,
+                    activeClass: 'bg-gradient-to-br from-amber-100 to-orange-100 p-3.5 rounded-2xl border-2 border-amber-500 opacity-100 scale-[1.02] shadow-md transition-all flex items-center gap-3'
+                },
+                {
+                    id: 'bonus-diamond',
+                    name: '💎 Mani di Diamante (+200 XP)',
+                    xp: 200,
+                    unlocked: params.isComplete && params.accuracy === 100 && params.errorsCount === 0,
+                    activeClass: 'bg-gradient-to-br from-cyan-100 to-blue-100 p-3.5 rounded-2xl border-2 border-cyan-500 opacity-100 scale-[1.02] shadow-md transition-all flex items-center gap-3'
+                },
+                {
+                    id: 'bonus-polyglot',
+                    name: '👑 Corona Poliglotta (+150 XP)',
+                    xp: 150,
+                    unlocked: params.keywordsMatched === params.keywordsTotal && params.keywordsTotal > 0 && params.audioListened,
+                    activeClass: 'bg-gradient-to-br from-purple-100 to-pink-100 p-3.5 rounded-2xl border-2 border-purple-500 opacity-100 scale-[1.02] shadow-md transition-all flex items-center gap-3'
+                },
+                {
+                    id: 'bonus-legend',
+                    name: '🏆 Coppa Campione (+300 XP)',
+                    xp: 300,
+                    unlocked: achievedCount >= 10,
+                    activeClass: 'bg-gradient-to-br from-emerald-100 to-teal-100 p-3.5 rounded-2xl border-2 border-emerald-500 opacity-100 scale-[1.02] shadow-md transition-all flex items-center gap-3'
+                }
+            ];
+
+            let totalXP = 0;
+            const unlockedList = [];
+            rewards.forEach(r => {
+                if (r.unlocked) {
+                    totalXP += r.xp;
+                    unlockedList.push(r);
+                }
+            });
+
+            return { rewards, totalXP, unlockedList };
+        }
+
+        function updateBonusRewards(params, achievedCount) {
+            const { rewards, totalXP } = calculateBonusRewards(params, achievedCount);
+            rewards.forEach(r => {
+                const el = document.getElementById(r.id);
+                if (!el) return;
+                if (r.unlocked) {
+                    el.className = r.activeClass;
+                } else {
+                    el.className = el.className.replace('opacity-100 scale-[1.02] shadow-md', 'opacity-60').replace(/border-\w+-500/g, 'border-gray-200');
+                }
+            });
+
+            const xpBadge = document.getElementById('bonus-points-badge');
+            if (xpBadge) xpBadge.innerText = `${totalXP} Punti Bonus XP`;
+        }
+
+        function togglePause() {
+            if (!isStarted || isFinished) return;
+            isPaused = !isPaused;
+            if (isPaused) {
+                if (pauseBtnText) pauseBtnText.innerText = "Riprendi";
+                if (typingInput) typingInput.setAttribute('disabled', 'true');
+                const hudStatus = document.getElementById('hud-status');
+                if (hudStatus) hudStatus.innerText = "In Pausa";
+            } else {
+                if (pauseBtnText) pauseBtnText.innerText = "Pausa";
+                if (typingInput) typingInput.removeAttribute('disabled');
+                if (typingInput) typingInput.focus();
+                const hudStatus = document.getElementById('hud-status');
+                if (hudStatus) hudStatus.innerText = "In corso (3 Minuti)...";
+            }
+        }
+
+        function resetExercise(fullReset = false) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            isStarted = false;
+            isPaused = false;
+            isFinished = false;
+            currentIndex = 0;
+            typedCharacters = 0;
+            totalMistakesMade = 0;
+            uncorrectedErrors = 0;
+            steadyRhythmFlag = true;
+
+            const timerVal = timerSelect ? parseInt(timerSelect.value, 10) || 180 : 180;
+            INITIAL_TIME = timerVal;
+            timeLeft = INITIAL_TIME;
+            const timeFormatted = formatTime(timeLeft);
+            if (timerDisplay) timerDisplay.innerText = timeFormatted;
+            if (hudTimerDisplay) hudTimerDisplay.innerText = timeFormatted;
+            const bannerTimerDisplay = document.getElementById('banner-timer-display');
+            if (bannerTimerDisplay) bannerTimerDisplay.innerText = timeFormatted;
+            if (timerBar) timerBar.style.width = '100%';
+
+            if (wpmDisplay) wpmDisplay.innerHTML = `0 <span class="text-xs font-normal text-gray-500">WPM</span>`;
+            if (accuracyDisplay) accuracyDisplay.innerText = `100%`;
+            if (errorsDisplay) errorsDisplay.innerText = `0`;
+
+            if (fullReset) {
+                attemptsCount++;
+                if (attemptsDisplay) attemptsDisplay.innerText = `#${attemptsCount}`;
+            }
+
+            if (startPrompt) startPrompt.classList.remove('opacity-0', 'pointer-events-none');
+            if (typingInput) typingInput.setAttribute('disabled', 'true');
+            if (btnPause) btnPause.setAttribute('disabled', 'true');
+            if (pauseBtnText) pauseBtnText.innerText = "Pausa";
+            const hudStatus = document.getElementById('hud-status');
+            if (hudStatus) hudStatus.innerText = "Pronto";
+            if (stickyHud) stickyHud.classList.add('-translate-y-full');
+
+            loadText(selectedTextIndex);
+        }
+
+        function endExercise(isSuccess) {
+            isFinished = true;
+            clearInterval(timerInterval);
+            timerInterval = null;
+            if (typingInput) typingInput.setAttribute('disabled', 'true');
+            if (btnPause) btnPause.setAttribute('disabled', 'true');
+            if (stickyHud) stickyHud.classList.add('-translate-y-full');
+
+            const finalMetrics = evaluateLiveMetrics();
+            const studentNameInput = document.getElementById('student-name');
+            const studentName = studentNameInput && studentNameInput.value.trim() ? studentNameInput.value.trim() : "Studente 3ª Media";
+            const studentClassInput = document.getElementById('student-class');
+            const studentClass = studentClassInput && studentClassInput.value.trim() ? studentClassInput.value.trim() : "3ª B";
+            const levelData = getCurrentLevelData();
+            const nowStr = new Date().toLocaleString('it-IT');
+
+            let achievedCount = 0;
+            const minTimeBonus = Math.round(INITIAL_TIME * 0.25);
+            const wordAccuracyPct = finalMetrics.totalWordsCount > 0 ? Math.round((finalMetrics.correctWordsCount / finalMetrics.totalWordsCount) * 100) : 0;
+
+            if (finalMetrics.isComplete) achievedCount++;
+            if (finalMetrics.timeRemaining >= minTimeBonus) achievedCount++;
+            if (finalMetrics.wpm >= levelData.targetWpm) achievedCount++;
+            if (finalMetrics.wpm >= 35) achievedCount++;
+            if (finalMetrics.accuracy >= 90) achievedCount++;
+            if (finalMetrics.accuracy === 100 && finalMetrics.typedChars > 10) achievedCount++;
+            if (finalMetrics.errorsCount <= 5) achievedCount++;
+            if (finalMetrics.keywordsMatched === finalMetrics.keywordsTotal) achievedCount++;
+            if (wordAccuracyPct >= 90) achievedCount++;
+            if (finalMetrics.steadyRhythm) achievedCount++;
+            if (finalMetrics.typedChars >= 100) achievedCount++;
+            if (finalMetrics.isComplete && audioListenedFlag) achievedCount++;
+
+            const attemptRecord = {
+                attempt: attemptsCount,
+                level: levelData.levelName,
+                datetime: nowStr,
+                wpm: finalMetrics.wpm,
+                accuracy: finalMetrics.accuracy,
+                errors: finalMetrics.errorsCount,
+                achieved: achievedCount
+            };
+            sessionAttemptsHistory.push(attemptRecord);
+            updateHistoryTable();
+
+            const repStudent = document.getElementById('rep-student');
+            if (repStudent) repStudent.innerText = studentName;
+            const repClass = document.getElementById('rep-class');
+            if (repClass) repClass.innerText = studentClass;
+            const repDatetime = document.getElementById('rep-datetime');
+            if (repDatetime) repDatetime.innerText = nowStr;
+            const repAttempt = document.getElementById('rep-attempt');
+            if (repAttempt) repAttempt.innerText = `#${attemptsCount}`;
+            const repWpm = document.getElementById('rep-wpm');
+            if (repWpm) repWpm.innerText = `${finalMetrics.wpm} WPM`;
+            const repAcc = document.getElementById('rep-acc');
+            if (repAcc) repAcc.innerText = `${finalMetrics.accuracy}%`;
+            const repTime = document.getElementById('rep-time');
+            if (repTime) repTime.innerText = formatTime(timeLeft);
+            const repChars = document.getElementById('rep-chars');
+            if (repChars) repChars.innerText = targetText.length;
+            const repCriteria = document.getElementById('rep-criteria');
+            if (repCriteria) repCriteria.innerText = `${achievedCount} / 12`;
+
+            const bonusData = calculateBonusRewards(finalMetrics, achievedCount);
+            const repBonusXp = document.getElementById('rep-bonus-xp');
+            if (repBonusXp) repBonusXp.innerText = `+${bonusData.totalXP} XP`;
+            const repBonusList = document.getElementById('rep-bonus-list');
+            if (repBonusList) {
+                if (bonusData.unlockedList.length > 0) {
+                    repBonusList.innerHTML = bonusData.unlockedList.map(b => `<span class="bg-white border border-amber-300 text-amber-900 px-2.5 py-1 rounded-full shadow-xs">${b.name}</span>`).join('');
+                } else {
+                    repBonusList.innerHTML = `<span class="text-gray-500 font-medium">Nessun premio bonus sbloccato in questo tentativo.</span>`;
+                }
+            }
+
+            const badgeIcon = document.getElementById('report-badge-icon');
+            const reportTitle = document.getElementById('report-title');
+            const reportSubtitle = document.getElementById('report-subtitle');
+
+            if (achievedCount >= 10) {
+                if (badgeIcon) {
+                    badgeIcon.className = "w-16 h-16 rounded-full bg-amber-100 border border-amber-400 text-amber-600 flex items-center justify-center text-3xl mx-auto shadow-md animate-bounce";
+                    badgeIcon.innerHTML = `<i class="fa-solid fa-trophy"></i>`;
+                }
+                if (reportTitle) reportTitle.innerText = "🌟 Master Supremo della Digitazione!";
+                if (reportSubtitle) reportSubtitle.innerText = "Risultato leggendario! Hai sbloccato quasi tutti i 12 obiettivi.";
+                playSound('success');
+                if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+            } else if (achievedCount >= 6) {
+                if (badgeIcon) {
+                    badgeIcon.className = "w-16 h-16 rounded-full bg-cyan-100 border border-cyan-400 text-cyan-600 flex items-center justify-center text-3xl mx-auto shadow-md";
+                    badgeIcon.innerHTML = `<i class="fa-solid fa-award"></i>`;
+                }
+                if (reportTitle) reportTitle.innerText = "👍 Ottimo Lavoro!";
+                if (reportSubtitle) reportSubtitle.innerText = "Hai completato l'esercizio con ottimi risultati di apprendimento.";
+                playSound('success');
+            } else {
+                if (badgeIcon) {
+                    badgeIcon.className = "w-16 h-16 rounded-full bg-pink-100 border border-pink-400 text-pink-600 flex items-center justify-center text-3xl mx-auto shadow-md";
+                    badgeIcon.innerHTML = `<i class="fa-solid fa-flag-checkered"></i>`;
+                }
+                if (reportTitle) reportTitle.innerText = "Esercizio Concluso!";
+                if (reportSubtitle) reportSubtitle.innerText = "Continua ad allenarti per sbloccare tutti i traguardi.";
+            }
+
+            const reportModal = document.getElementById('report-modal');
+            if (reportModal) reportModal.classList.remove('hidden');
+        }
+
+        function updateHistoryTable() {
+            const tbody = document.getElementById('history-table-body');
+            const historyCount = document.getElementById('history-count');
+            if (historyCount) historyCount.innerText = `${sessionAttemptsHistory.length} tentativi registrati`;
+            if (!tbody) return;
+
+            tbody.innerHTML = sessionAttemptsHistory.map(rec => `
+                <tr class="hover:bg-purple-50 transition-all">
+                    <td class="p-3 font-extrabold text-purple-700">#${rec.attempt}</td>
+                    <td class="p-3 font-semibold text-gray-900">${rec.level}</td>
+                    <td class="p-3 text-gray-600">${rec.datetime}</td>
+                    <td class="p-3 font-extrabold text-pink-600">${rec.wpm} WPM</td>
+                    <td class="p-3 font-extrabold text-cyan-600">${rec.accuracy}%</td>
+                    <td class="p-3 text-pink-600 font-bold">${rec.errors} err</td>
+                    <td class="p-3">
+                        <span class="bg-cyan-100 text-cyan-800 border border-cyan-300 font-bold px-2.5 py-1 rounded-full text-[10px]">
+                            ${rec.achieved} / 12 Criteri
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function generateReportText() {
+            const studentNameInput = document.getElementById('student-name');
+            const studentName = studentNameInput && studentNameInput.value.trim() ? studentNameInput.value.trim() : "Studente";
+            const studentClassInput = document.getElementById('student-class');
+            const studentClass = studentClassInput && studentClassInput.value.trim() ? studentClassInput.value.trim() : "3ª B";
+            const levelData = getCurrentLevelData();
+            const nowStr = new Date().toLocaleString('it-IT');
+            const wpmVal = wpmDisplay ? wpmDisplay.innerText.replace(' WPM', '').trim() : "0";
+            const accVal = accuracyDisplay ? accuracyDisplay.innerText : "100%";
+            const errVal = errorsDisplay ? errorsDisplay.innerText : "0";
+            const finalMetrics = evaluateLiveMetrics();
+            const levelTargetWpm = levelData.targetWpm;
+            const minTimeBonus = Math.round(INITIAL_TIME * 0.25);
+            const wordAccuracyPct = finalMetrics.totalWordsCount > 0 ? Math.round((finalMetrics.correctWordsCount / finalMetrics.totalWordsCount) * 100) : 0;
+            let achievedCount = 0;
+            if (finalMetrics.isComplete) achievedCount++;
+            if (finalMetrics.timeRemaining >= minTimeBonus) achievedCount++;
+            if (finalMetrics.wpm >= levelTargetWpm) achievedCount++;
+            if (finalMetrics.wpm >= 35) achievedCount++;
+            if (finalMetrics.accuracy >= 90) achievedCount++;
+            if (finalMetrics.accuracy === 100 && finalMetrics.typedChars > 10) achievedCount++;
+            if (finalMetrics.errorsCount <= 5) achievedCount++;
+            if (finalMetrics.keywordsMatched === finalMetrics.keywordsTotal) achievedCount++;
+            if (wordAccuracyPct >= 90) achievedCount++;
+            if (finalMetrics.steadyRhythm) achievedCount++;
+            if (finalMetrics.typedChars >= 100) achievedCount++;
+            if (finalMetrics.isComplete && audioListenedFlag) achievedCount++;
+            const bonusData = calculateBonusRewards(finalMetrics, achievedCount);
+            const bonusText = bonusData.unlockedList.length > 0 
+                ? bonusData.unlockedList.map(b => b.name).join(', ') 
+                : 'Nessun premio bonus sbloccato';
+
+            return `=== REPORT UFFICIALE: DAILY ROUTINE TYPING MASTER (3 MINUTI) ===\n` +
+                   `Data e Ora: ${nowStr}\n` +
+                   `Studente: ${studentName}\n` +
+                   `Classe: ${studentClass}\n` +
+                   `Livello Esercizio: ${levelData.levelName}\n` +
+                   `Durata Timer Obiettivo: ${formatTime(INITIAL_TIME)}\n` +
+                   `Tentativo N°: ${attemptsCount}\n` +
+                   `---------------------------------------------------\n` +
+                   `STATISTICHE FINALI:\n` +
+                   `- Velocità: ${wpmVal} WPM\n` +
+                   `- Accuratezza: ${accVal}\n` +
+                   `- Errori Commessi: ${errVal}\n` +
+                   `- Caratteri Totali Digitati: ${typedCharacters} / ${targetText.length}\n` +
+                   `- Tempo Residuo: ${formatTime(timeLeft)}\n` +
+                   `- Obiettivi Raggiunti: ${achievedCount} / 12\n` +
+                   `- Punti Bonus XP Totali: +${bonusData.totalXP} XP\n` +
+                   `- Premi Bonus Sbloccati: ${bonusText}\n` +
+                   `==================================================-\n`;
+        }
+
+        function downloadReportTXT() {
+            const studentNameInput = document.getElementById('student-name');
+            const studentName = (studentNameInput && studentNameInput.value.trim() ? studentNameInput.value.trim() : "Studente").replace(/\s+/g, '_');
+            const reportContent = generateReportText();
+            const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Report_Typing_3Min_${studentName}_${new Date().toISOString().slice(0, 10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function copyReportToClipboard() {
+            const reportContent = generateReportText();
+            const textArea = document.createElement('textarea');
+            textArea.value = reportContent;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                alertBox("Report copiato negli appunti con successo!");
+            } catch (err) {
+                alertBox("Impossibile copiare automaticamente.");
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function alertBox(message) {
+            const modal = document.createElement('div');
+            modal.className = "fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50";
+            modal.innerHTML = `
+                <div class="vibrant-card rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-2xl text-center border border-purple-300">
+                    <h3 class="font-extrabold text-base text-amber-600">Avviso</h3>
+                    <p class="text-xs text-gray-700">${message}</p>
+                    <button onclick="this.closest('.fixed').remove()" class="bg-gradient-to-r from-pink-500 to-cyan-400 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl w-full shadow">OK</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+    </script>
+</body>
+</html>
