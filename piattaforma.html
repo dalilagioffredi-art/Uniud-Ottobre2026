@@ -1,0 +1,1999 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Routine Typing Pro • Piattaforma Digitazione Veloce</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fredoka, Poppins & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['Fredoka', 'sans-serif'],
+                        sans: ['Poppins', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pop': 'pop 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                        'shake': 'shake 0.3s ease-in-out',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        pop: {
+                            '0%': { transform: 'scale(0.85)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
+                        },
+                        shake: {
+                            '0%, 100%': { transform: 'translateX(0)' },
+                            '25%': { transform: 'translateX(-6px)' },
+                            '75%': { transform: 'translateX(6px)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-14px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #f0f9ff 0%, #fdf4ff 45%, #fffbeb 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: #1e293b;
+        }
+
+        /* Forme decorative luminose di sfondo */
+        .bg-shape {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(75px);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.65;
+        }
+
+        /* Cursore lampeggiante ad alta leggibilità su sfondo chiaro */
+        .char-current {
+            background-color: #fde047;
+            color: #0f172a;
+            border-bottom: 3px solid #f59e0b;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(250, 204, 21, 0.75);
+            animation: cursorPulse 1s infinite;
+        }
+
+        @keyframes cursorPulse {
+            0%, 49% { background-color: #fde047; }
+            50%, 100% { background-color: #fef08a; }
+        }
+
+        .char-correct {
+            color: #059669;
+            background-color: #ecfdf5;
+            border-radius: 3px;
+        }
+
+        .char-incorrect {
+            color: #ffffff !important;
+            background-color: #f43f5e !important;
+            border-radius: 5px;
+            box-shadow: 0 0 8px rgba(244, 63, 94, 0.6);
+        }
+
+        /* Tastiera virtuale luminosa */
+        .v-key {
+            transition: all 0.08s ease;
+            box-shadow: 0 3px 0 #cbd5e1;
+        }
+        .v-key.active-target {
+            background: linear-gradient(135deg, #06b6d4, #8b5cf6) !important;
+            color: #ffffff !important;
+            border-color: #fde047 !important;
+            transform: translateY(-2px) scale(1.06);
+            box-shadow: 0 0 14px rgba(6, 182, 212, 0.65), 0 3px 0 #4f46e5;
+            font-weight: 700;
+        }
+        .v-key.pressed {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #94a3b8;
+        }
+
+        /* Scrollbar personalizzata chiara */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c084fc;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a855f7;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased selection:bg-pink-400 selection:text-white">
+
+    <!-- Bolle di luce pastello vivace -->
+    <div class="bg-shape w-96 h-96 bg-cyan-200 top-[-6%] left-[-5%] animate-float"></div>
+    <div class="bg-shape w-96 h-96 bg-pink-200 bottom-[-8%] right-[-4%] animate-float" style="animation-delay: 2s;"></div>
+    <div class="bg-shape w-80 h-80 bg-amber-200 top-[35%] left-[55%]"></div>
+    <div class="bg-shape w-72 h-72 bg-violet-200 top-[60%] left-[10%]"></div>
+
+    <!-- Canvas Coriandoli -->
+    <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+    <!-- Notifiche Toast Bonus & Messaggi -->
+    <div id="toast-container" class="fixed top-20 right-4 z-40 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- CONTAINER PRINCIPALE -->
+    <div class="relative z-10 max-w-6xl mx-auto px-4 py-4 flex flex-col min-h-screen justify-between">
+        
+        <!-- HEADER PIATTAFORMA -->
+        <header class="flex flex-wrap items-center justify-between gap-4 bg-white/90 backdrop-blur-md border-2 border-cyan-200 rounded-3xl px-5 py-3.5 shadow-lg shadow-cyan-500/10">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-400 via-violet-500 to-pink-500 flex items-center justify-center text-2xl text-white shadow-md transform -rotate-3">
+                    ⌨️
+                </div>
+                <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h1 class="font-display text-2xl sm:text-3xl font-bold bg-gradient-to-r from-violet-600 via-pink-500 to-cyan-500 bg-clip-text text-transparent">
+                            DAILY ROUTINE TYPING PRO
+                        </h1>
+                        <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-300">
+                            3ª Media • Piattaforma
+                        </span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-500 font-medium">Allena velocità e precisione con testi, dialoghi, brani incollati e il tuo vocabolario!</p>
+                </div>
+            </div>
+
+            <!-- Controlli Rapidi Header -->
+            <div class="flex flex-wrap items-center gap-2">
+                <input type="text" id="student-name-input" placeholder="Nome e Classe (es. Sofia 3A)" 
+                    class="bg-slate-50 border-2 border-violet-200 rounded-2xl px-3.5 py-1.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-violet-500 focus:bg-white w-48 sm:w-52 transition font-medium">
+
+                <button onclick="openHistoryModal()" title="Storico Sessioni Salvate"
+                    class="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-amber-100 hover:bg-amber-200 border border-amber-300 text-amber-800 text-xs sm:text-sm font-bold transition cursor-pointer">
+                    <span>📊</span>
+                    <span class="hidden md:inline">Storico</span>
+                </button>
+
+                <button id="toggle-keyboard-btn" onclick="toggleVirtualKeyboard()" title="Mostra/Nascondi Tastiera Guida"
+                    class="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-cyan-100 hover:bg-cyan-200 border border-cyan-300 text-cyan-800 text-xs sm:text-sm font-bold transition cursor-pointer">
+                    <span>🎹</span>
+                    <span class="hidden md:inline">Tastiera: ON</span>
+                </button>
+
+                <button id="toggle-sound-btn" onclick="toggleSound()" title="Attiva/Disattiva Suoni"
+                    class="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-pink-100 hover:bg-pink-200 border border-pink-300 text-pink-800 text-xs sm:text-sm font-bold transition cursor-pointer">
+                    <span id="sound-icon">🔊</span>
+                    <span class="hidden md:inline" id="sound-label">Suoni: ON</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- SELETTORE TIPOLOGIA DI TESTO (6 MODALITÀ PIATTAFORMA) -->
+        <section class="mt-4 bg-white/90 backdrop-blur-md border-2 border-violet-200 rounded-3xl p-3.5 shadow-md">
+            <div class="flex items-center justify-between mb-2 px-1">
+                <span class="text-xs font-bold uppercase tracking-wider text-violet-600 flex items-center gap-1.5">
+                    <span>📚</span> 1. Scegli la Tipologia di Esercizio
+                </span>
+                <span id="category-badge-info" class="text-xs font-semibold text-slate-500">
+                    Frasi graduali sulla giornata tipo
+                </span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                <button onclick="selectCategory('routine')" id="cat-btn-routine"
+                    class="cat-btn flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-2xl border-2 font-display font-bold text-xs sm:text-sm transition cursor-pointer bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-cyan-400 shadow-md shadow-cyan-500/20">
+                    <span>🌅</span> Daily Routine
+                </button>
+
+                <button onclick="selectCategory('dialogues')" id="cat-btn-dialogues"
+                    class="cat-btn flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-2xl border-2 font-display font-bold text-xs sm:text-sm transition cursor-pointer bg-slate-50 hover:bg-pink-50 text-slate-700 border-slate-200">
+                    <span>💬</span> Dialoghi & Chat
+                </button>
+
+                <button onclick="selectCategory('diary')" id="cat-btn-diary"
+                    class="cat-btn flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-2xl border-2 font-display font-bold text-xs sm:text-sm transition cursor-pointer bg-slate-50 hover:bg-amber-50 text-slate-700 border-slate-200">
+                    <span>✉️</span> Email & Diario
+                </button>
+
+                <button onclick="selectCategory('twisters')" id="cat-btn-twisters"
+                    class="cat-btn flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-2xl border-2 font-display font-bold text-xs sm:text-sm transition cursor-pointer bg-slate-50 hover:bg-emerald-50 text-slate-700 border-slate-200">
+                    <span>🌪️</span> Scioglilingua
+                </button>
+
+                <button onclick="selectCategory('custom_text')" id="cat-btn-custom_text"
+                    class="cat-btn flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-2xl border-2 font-display font-bold text-xs sm:text-sm transition cursor-pointer bg-slate-50 hover:bg-violet-50 text-slate-700 border-slate-200">
+                    <span>📋</span> Incolla Testo
+                </button>
+
+                <button onclick="selectCategory('word_list')" id="cat-btn-word_list"
+                    class="cat-btn flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-2xl border-2 font-display font-bold text-xs sm:text-sm transition cursor-pointer bg-slate-50 hover:bg-rose-50 text-slate-700 border-slate-200">
+                    <span>⭐</span> Mie Parole (<span id="saved-words-count-pill">0</span>)
+                </button>
+            </div>
+        </section>
+
+        <!-- PANNELLO DINAMICO PER "INCOLLA TESTO" (Visibile solo se selezionato) -->
+        <section id="panel-custom-text" class="hidden mt-3 bg-white/95 backdrop-blur-md border-2 border-violet-300 rounded-3xl p-4 shadow-lg animate-pop">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <h2 class="font-display font-bold text-base sm:text-lg text-violet-700 flex items-center gap-2">
+                    <span>📋</span> Incolla il tuo Testo Personalizzato
+                </h2>
+                <div class="flex items-center gap-2">
+                    <input type="text" id="custom-text-title" placeholder="Titolo brano (es. Verifica Inglese)" 
+                        class="bg-violet-50 border border-violet-200 rounded-xl px-3 py-1.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-violet-500">
+                    <button onclick="pasteFromClipboard()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-300 cursor-pointer">
+                        📥 Incolla dagli Appunti
+                    </button>
+                </div>
+            </div>
+            <textarea id="custom-text-area" rows="3" placeholder="Incolla o scrivi qui qualsiasi testo, brano, dialogo o esercitazione da completare sulla tastiera..."
+                class="w-full bg-slate-50 border-2 border-violet-200 rounded-2xl p-3 text-sm font-mono text-slate-800 focus:outline-none focus:border-violet-500 focus:bg-white"></textarea>
+            <div class="mt-2.5 flex flex-wrap items-center justify-between gap-2">
+                <label class="flex items-center gap-2 text-xs text-slate-600 font-medium cursor-pointer">
+                    <input type="checkbox" id="normalize-spaces-check" checked class="rounded text-violet-600 focus:ring-violet-500">
+                    <span>Normalizza a capo e spazi multipli per una digitazione continua</span>
+                </label>
+                <div class="flex items-center gap-2">
+                    <button onclick="clearCustomText()" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold border border-rose-200 cursor-pointer">
+                        🗑️ Svuota
+                    </button>
+                    <button onclick="applyCustomText()" class="px-5 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-pink-500 hover:from-violet-500 hover:to-pink-400 text-white font-display font-bold text-sm shadow-md cursor-pointer">
+                        🚀 Carica Testo nell'Esercizio
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PANNELLO DINAMICO PER "LA MIA LISTA DI PAROLE" (Visibile solo se selezionato) -->
+        <section id="panel-word-list" class="hidden mt-3 bg-white/95 backdrop-blur-md border-2 border-pink-300 rounded-3xl p-4 shadow-lg animate-pop">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div>
+                    <h2 class="font-display font-bold text-base sm:text-lg text-pink-600 flex items-center gap-2">
+                        <span>⭐</span> Il Mio Vocabolario Personale (Salvato Automaticamente)
+                    </h2>
+                    <p class="text-xs text-slate-500">Aggiungi parole singole o coppie <code class="bg-pink-50 text-pink-700 px-1 rounded">parola - traduzione</code>. Puoi anche incollare una lista intera!</p>
+                </div>
+
+                <!-- Modalità allenamento lista parole -->
+                <div class="flex flex-wrap items-center gap-1.5 bg-pink-50 p-1.5 rounded-2xl border border-pink-200">
+                    <span class="text-[11px] font-bold text-pink-700 px-1.5">Ordine:</span>
+                    <button onclick="setWordMode('sequential')" id="wmode-sequential" class="wmode-btn px-2.5 py-1 rounded-xl text-xs font-bold bg-pink-500 text-white cursor-pointer">Sequenziale</button>
+                    <button onclick="setWordMode('shuffle')" id="wmode-shuffle" class="wmode-btn px-2.5 py-1 rounded-xl text-xs font-bold text-pink-700 hover:bg-pink-100 cursor-pointer">Casuale 🔀</button>
+                    <button onclick="setWordMode('intensive')" id="wmode-intensive" class="wmode-btn px-2.5 py-1 rounded-xl text-xs font-bold text-pink-700 hover:bg-pink-100 cursor-pointer">Mix Intensivo 🔥</button>
+                </div>
+            </div>
+
+            <!-- Form Aggiunta Rapida -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-2 mb-3">
+                <input type="text" id="new-word-en" placeholder="Parola o espressione inglese (es. brush my teeth)" 
+                    class="md:col-span-5 bg-slate-50 border-2 border-pink-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-pink-500">
+                <input type="text" id="new-word-it" placeholder="Traduzione / Nota opzionale (es. lavarsi i denti)" 
+                    class="md:col-span-4 bg-slate-50 border-2 border-pink-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-pink-500">
+                <button onclick="addSingleWord()" class="md:col-span-3 px-4 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-amber-500 hover:from-pink-400 hover:to-amber-400 text-white font-display font-bold text-sm shadow cursor-pointer">
+                    ➕ Aggiungi Parola
+                </button>
+            </div>
+
+            <!-- Importazione Multipla / Gestione Lista -->
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3 pb-2 border-b border-slate-100">
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="toggleBulkWordBox()" class="px-3 py-1.5 rounded-xl bg-violet-100 hover:bg-violet-200 text-violet-700 text-xs font-bold cursor-pointer">
+                        📝 Incolla Lista Multipla
+                    </button>
+                    <button onclick="exportWordListJson()" class="px-3 py-1.5 rounded-xl bg-cyan-100 hover:bg-cyan-200 text-cyan-800 text-xs font-bold cursor-pointer">
+                        💾 Esporta Lista
+                    </button>
+                    <button onclick="resetDefaultWords()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold cursor-pointer">
+                        🔄 Ripristina Esempi
+                    </button>
+                </div>
+                <input type="text" id="search-word-input" oninput="renderWordChips()" placeholder="🔍 Cerca nelle tue parole..." 
+                    class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1 text-xs text-slate-700 focus:outline-none focus:border-pink-400">
+            </div>
+
+            <!-- Box nascosto per incollare lista multipla -->
+            <div id="bulk-word-box" class="hidden mb-3 bg-violet-50 p-3 rounded-2xl border border-violet-200">
+                <textarea id="bulk-word-textarea" rows="2" placeholder="Inserisci più parole separate da virgola o una per riga (es: wake up - svegliarsi, have breakfast, go to school)"
+                    class="w-full bg-white border border-violet-200 rounded-xl p-2 text-xs font-mono text-slate-800 focus:outline-none"></textarea>
+                <div class="mt-2 flex justify-end gap-2">
+                    <button onclick="toggleBulkWordBox()" class="px-3 py-1 rounded-lg text-xs text-slate-600 hover:bg-violet-100 cursor-pointer">Annulla</button>
+                    <button onclick="importBulkWords()" class="px-4 py-1 rounded-lg bg-violet-600 text-white text-xs font-bold cursor-pointer">Importa Tutte</button>
+                </div>
+            </div>
+
+            <!-- Bacheca Badge Parole Salvate -->
+            <div id="saved-words-chips" class="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-1">
+                <!-- Popolato da JS -->
+            </div>
+        </section>
+
+        <!-- BARRA CONFIGURAZIONE: LIVELLI DIFFICOLTÀ & TIMER FLESSIBILE -->
+        <section class="mt-3 grid grid-cols-1 lg:grid-cols-12 gap-3">
+            
+            <!-- 2. Livelli di Difficoltà (sincronizza anche il timer consigliato) -->
+            <div id="difficulty-box" class="lg:col-span-6 bg-white/90 backdrop-blur-md border-2 border-emerald-200 rounded-3xl p-3.5 shadow-md">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 flex items-center gap-1.5">
+                        <span>🎯</span> 2. Livello di Difficoltà
+                    </span>
+                    <span id="level-desc-badge" class="text-[11px] font-semibold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                        Frasi brevi • Timer suggerito 3:00
+                    </span>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="selectDifficulty('easy', true)" id="btn-diff-easy"
+                        class="diff-btn flex flex-col items-center justify-center p-2.5 rounded-2xl border-2 transition cursor-pointer bg-emerald-500 border-emerald-400 text-white shadow-md shadow-emerald-500/20">
+                        <span class="text-lg">🌱</span>
+                        <span class="font-display font-bold text-xs sm:text-sm">Principiante</span>
+                        <span class="text-[10px] opacity-90">Base (3:00 min)</span>
+                    </button>
+
+                    <button onclick="selectDifficulty('medium', true)" id="btn-diff-medium"
+                        class="diff-btn flex flex-col items-center justify-center p-2.5 rounded-2xl border-2 transition cursor-pointer bg-slate-50 border-slate-200 hover:bg-amber-50 text-slate-700">
+                        <span class="text-lg">⚡</span>
+                        <span class="font-display font-bold text-xs sm:text-sm">Intermedio</span>
+                        <span class="text-[10px] text-slate-500">Medio (2:00 min)</span>
+                    </button>
+
+                    <button onclick="selectDifficulty('hard', true)" id="btn-diff-hard"
+                        class="diff-btn flex flex-col items-center justify-center p-2.5 rounded-2xl border-2 transition cursor-pointer bg-slate-50 border-slate-200 hover:bg-pink-50 text-slate-700">
+                        <span class="text-lg">🔥</span>
+                        <span class="font-display font-bold text-xs sm:text-sm">Esperto Pro</span>
+                        <span class="text-[10px] text-slate-500">Avanzato (1:30)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3. Timer Flessibile & Personalizzabile -->
+            <div class="lg:col-span-6 bg-white/90 backdrop-blur-md border-2 border-amber-200 rounded-3xl p-3.5 shadow-md">
+                <div class="flex flex-wrap items-center justify-between gap-1 mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
+                        <span>⏱️</span> 3. Timer Personalizzabile
+                    </span>
+                    <label class="flex items-center gap-1.5 text-[11px] font-bold text-violet-700 bg-violet-100 px-2.5 py-0.5 rounded-full cursor-pointer">
+                        <input type="checkbox" id="sync-timer-level-check" checked class="rounded text-violet-600">
+                        <span>Adatta timer al livello</span>
+                    </label>
+                </div>
+
+                <!-- Preset Rapidi -->
+                <div class="grid grid-cols-5 gap-1.5 mb-2">
+                    <button onclick="setTimerPreset(180)" id="btn-time-180" class="time-btn py-1.5 px-1 rounded-xl border-2 font-display font-bold text-xs transition cursor-pointer bg-amber-400 border-amber-500 text-slate-900 shadow-sm">
+                        3:00
+                    </button>
+                    <button onclick="setTimerPreset(120)" id="btn-time-120" class="time-btn py-1.5 px-1 rounded-xl border-2 font-display font-bold text-xs transition cursor-pointer bg-slate-50 border-slate-200 hover:bg-amber-50 text-slate-700">
+                        2:00
+                    </button>
+                    <button onclick="setTimerPreset(90)" id="btn-time-90" class="time-btn py-1.5 px-1 rounded-xl border-2 font-display font-bold text-xs transition cursor-pointer bg-slate-50 border-slate-200 hover:bg-amber-50 text-slate-700">
+                        1:30
+                    </button>
+                    <button onclick="setTimerPreset(60)" id="btn-time-60" class="time-btn py-1.5 px-1 rounded-xl border-2 font-display font-bold text-xs transition cursor-pointer bg-slate-50 border-slate-200 hover:bg-amber-50 text-slate-700">
+                        1:00
+                    </button>
+                    <button onclick="setFreeStopwatchMode()" id="btn-time-free" class="time-btn py-1.5 px-1 rounded-xl border-2 font-display font-bold text-[11px] transition cursor-pointer bg-slate-50 border-slate-200 hover:bg-cyan-50 text-cyan-700" title="Cronometro senza limiti di tempo">
+                        ∞ Libero
+                    </button>
+                </div>
+
+                <!-- Regolazione Fine Minuti / Secondi + Pulsanti +/- 30s -->
+                <div class="flex flex-wrap items-center justify-between gap-2 bg-amber-50/80 border border-amber-200 rounded-2xl px-3 py-1.5">
+                    <div class="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                        <span>Durata esatta:</span>
+                        <input type="number" id="custom-min-input" min="0" max="59" value="3" onchange="applyCustomDurationInputs()"
+                            class="w-12 text-center bg-white border border-amber-300 rounded-lg py-0.5 font-mono font-bold text-slate-800">
+                        <span>m</span>
+                        <input type="number" id="custom-sec-input" min="0" max="59" step="5" value="0" onchange="applyCustomDurationInputs()"
+                            class="w-12 text-center bg-white border border-amber-300 rounded-lg py-0.5 font-mono font-bold text-slate-800">
+                        <span>s</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button onclick="adjustTimerSeconds(-30)" class="px-2 py-0.5 rounded-lg bg-white hover:bg-rose-100 border border-slate-300 text-xs font-bold text-slate-700 cursor-pointer">-30s</button>
+                        <button onclick="adjustTimerSeconds(30)" class="px-2 py-0.5 rounded-lg bg-white hover:bg-emerald-100 border border-slate-300 text-xs font-bold text-slate-700 cursor-pointer">+30s</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DASHBOARD METRICHE & TIMER VISIVO -->
+        <section class="mt-3 grid grid-cols-2 sm:grid-cols-5 gap-2.5 items-center">
+            
+            <!-- Timer Visivo Circolare -->
+            <div class="col-span-2 sm:col-span-1 bg-white border-2 border-cyan-300 rounded-3xl p-2.5 flex items-center justify-center gap-3 shadow-md">
+                <div class="relative w-14 h-14 flex items-center justify-center">
+                    <svg class="w-14 h-14 transform -rotate-90" viewBox="0 0 60 60">
+                        <circle cx="30" cy="30" r="25" stroke="#e2e8f0" stroke-width="6" fill="none" />
+                        <circle id="timer-ring" cx="30" cy="30" r="25" stroke="#06b6d4" stroke-width="6" fill="none"
+                            stroke-dasharray="157.08" stroke-dashoffset="0" stroke-linecap="round" class="transition-all duration-300" />
+                    </svg>
+                    <span id="timer-display" class="absolute font-mono font-bold text-sm text-slate-800">03:00</span>
+                </div>
+                <div class="sm:hidden">
+                    <div id="timer-mode-label-mobile" class="text-xs text-cyan-700 font-bold uppercase">Timer Attivo</div>
+                    <div class="text-xs text-slate-500">Digita per avviare!</div>
+                </div>
+            </div>
+
+            <!-- WPM & CPM -->
+            <div class="bg-white border-2 border-violet-200 rounded-3xl p-3 text-center shadow-md">
+                <div class="text-[11px] font-bold uppercase tracking-wider text-violet-600">Velocità (WPM)</div>
+                <div id="stat-wpm" class="font-display text-2xl sm:text-3xl font-bold text-slate-800">0</div>
+                <div class="text-[11px] text-slate-500 font-medium"><span id="stat-cpm">0</span> car/min</div>
+            </div>
+
+            <!-- Precisione -->
+            <div class="bg-white border-2 border-emerald-200 rounded-3xl p-3 text-center shadow-md">
+                <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-600">Precisione</div>
+                <div id="stat-accuracy" class="font-display text-2xl sm:text-3xl font-bold text-slate-800">100%</div>
+                <div class="text-[11px] text-slate-500 font-medium"><span id="stat-errors">0</span> errori</div>
+            </div>
+
+            <!-- Serie Combo -->
+            <div class="bg-white border-2 border-pink-200 rounded-3xl p-3 text-center shadow-md">
+                <div class="text-[11px] font-bold uppercase tracking-wider text-pink-600">Serie Combo</div>
+                <div id="stat-streak" class="font-display text-2xl sm:text-3xl font-bold text-slate-800">0 🔥</div>
+                <div class="text-[11px] text-slate-500 font-medium">Record: <span id="stat-max-streak">0</span></div>
+            </div>
+
+            <!-- Punti Bonus XP -->
+            <div class="bg-gradient-to-br from-amber-100 via-yellow-50 to-pink-100 border-2 border-amber-300 rounded-3xl p-3 text-center shadow-md">
+                <div class="text-[11px] font-bold uppercase tracking-wider text-amber-700">Punti Bonus XP</div>
+                <div id="stat-points" class="font-display text-2xl sm:text-3xl font-bold text-amber-600">0</div>
+                <div class="text-[11px] text-amber-800 font-medium"><span id="stat-phrases">0</span> completati</div>
+            </div>
+        </section>
+
+        <!-- BARRA LINEARE TEMPO -->
+        <div class="mt-2.5 w-full h-3 bg-white rounded-full overflow-hidden border border-slate-200 p-0.5 shadow-inner">
+            <div id="timer-linear-bar" class="h-full w-full rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-pink-500 transition-all duration-300"></div>
+        </div>
+
+        <!-- AREA PRINCIPALE DI DIGITAZIONE -->
+        <main class="mt-3 relative">
+            <div id="typing-card" onclick="focusTypingInput()" 
+                class="bg-white border-2 border-cyan-300 hover:border-violet-400 rounded-3xl p-5 sm:p-7 shadow-xl shadow-violet-500/10 transition cursor-text relative overflow-hidden">
+                
+                <!-- Barra Intestazione Card -->
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3 pb-3 border-b-2 border-slate-100">
+                    <div class="flex items-center gap-2.5">
+                        <span id="topic-emoji" class="text-2xl bg-cyan-50 w-10 h-10 rounded-2xl flex items-center justify-center border border-cyan-200">🌅</span>
+                        <div>
+                            <span id="topic-title" class="text-xs font-bold uppercase tracking-wider text-violet-600 block">Daily Routine • Morning</span>
+                            <span id="italian-hint" class="text-xs sm:text-sm text-slate-600 font-medium">🇮🇹 "Mi sveglio alle sette ogni mattina."</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 relative z-20">
+                        <span id="status-pill" class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                            ✨ Inizia a digitare per partire!
+                        </span>
+                        <button onclick="finishSessionEarly(event)" title="Termina ora e genera report"
+                            class="px-3 py-1.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-xs font-bold text-emerald-800 border border-emerald-300 transition cursor-pointer">
+                            🏁 Concludi & Report
+                        </button>
+                        <button onclick="resetExercise(event)" title="Ricomincia"
+                            class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 border border-slate-300 transition cursor-pointer">
+                            🔄 Reset
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Box Testo da Digitare con Scroll Automatico -->
+                <div id="prompt-scroll-wrapper" class="max-h-44 overflow-y-auto pr-2">
+                    <div id="prompt-display" class="font-mono text-xl sm:text-2xl md:text-[26px] leading-relaxed tracking-wide select-none flex flex-wrap content-start break-words text-slate-700">
+                        <!-- Caratteri generati da JS -->
+                    </div>
+                </div>
+
+                <!-- Input Nascosto per catturare la tastiera -->
+                <input type="text" id="hidden-typing-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                    class="opacity-0 absolute inset-0 w-full h-full cursor-text z-10" aria-label="Area di digitazione">
+
+                <!-- Footer Card Digitazione -->
+                <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block w-3 h-3 rounded-full bg-yellow-300 border border-amber-500"></span>
+                        <span>Segui il cursore giallo e il tasto evidenziato sulla tastiera virtuale.</span>
+                    </div>
+                    <div class="flex items-center gap-3 relative z-20">
+                        <span id="progress-counter-text" class="font-mono font-bold text-violet-600">0 / 0 car.</span>
+                        <button onclick="skipPrompt(event)" class="text-cyan-600 hover:text-cyan-800 underline font-bold cursor-pointer">
+                            Prossimo elemento ⏭️
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- TASTIERA VIRTUALE INTERATTIVA LUMINOSA -->
+        <section id="virtual-keyboard-section" class="mt-3 bg-white/90 backdrop-blur-md border-2 border-cyan-200 rounded-3xl p-3 shadow-md">
+            <div class="max-w-3xl mx-auto flex flex-col gap-1.5 select-none text-slate-700">
+                <!-- Numeri -->
+                <div class="grid grid-cols-11 gap-1 sm:gap-1.5">
+                    <div data-key="1" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">1</div>
+                    <div data-key="2" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">2</div>
+                    <div data-key="3" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">3</div>
+                    <div data-key="4" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">4</div>
+                    <div data-key="5" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">5</div>
+                    <div data-key="6" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">6</div>
+                    <div data-key="7" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">7</div>
+                    <div data-key="8" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">8</div>
+                    <div data-key="9" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">9</div>
+                    <div data-key="0" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">0</div>
+                    <div data-key="'" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">'</div>
+                </div>
+                <!-- QWERTY -->
+                <div class="grid grid-cols-10 gap-1 sm:gap-1.5 px-2">
+                    <div data-key="q" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">Q</div>
+                    <div data-key="w" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">W</div>
+                    <div data-key="e" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">E</div>
+                    <div data-key="r" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">R</div>
+                    <div data-key="t" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">T</div>
+                    <div data-key="y" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">Y</div>
+                    <div data-key="u" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">U</div>
+                    <div data-key="i" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">I</div>
+                    <div data-key="o" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">O</div>
+                    <div data-key="p" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">P</div>
+                </div>
+                <!-- ASDF -->
+                <div class="grid grid-cols-10 gap-1 sm:gap-1.5 px-4">
+                    <div data-key="a" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">A</div>
+                    <div data-key="s" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">S</div>
+                    <div data-key="d" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">D</div>
+                    <div data-key="f" class="v-key bg-amber-50 border-2 border-amber-400 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-bold uppercase underline">F</div>
+                    <div data-key="g" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">G</div>
+                    <div data-key="h" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">H</div>
+                    <div data-key="j" class="v-key bg-amber-50 border-2 border-amber-400 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-bold uppercase underline">J</div>
+                    <div data-key="k" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">K</div>
+                    <div data-key="l" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">L</div>
+                    <div data-key=":" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">:</div>
+                </div>
+                <!-- ZXCV -->
+                <div class="grid grid-cols-11 gap-1 sm:gap-1.5 px-1">
+                    <div data-key="shift" class="v-key col-span-2 bg-violet-100 border border-violet-300 text-violet-800 rounded-xl py-1.5 text-center font-mono text-[11px] sm:text-xs font-bold">⇧ SHIFT</div>
+                    <div data-key="z" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">Z</div>
+                    <div data-key="x" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">X</div>
+                    <div data-key="c" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">C</div>
+                    <div data-key="v" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">V</div>
+                    <div data-key="b" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">B</div>
+                    <div data-key="n" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">N</div>
+                    <div data-key="m" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">M</div>
+                    <div data-key="," class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">,</div>
+                    <div data-key="." class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">.</div>
+                </div>
+                <!-- Spazio & Punteggiatura -->
+                <div class="grid grid-cols-12 gap-1.5 mt-0.5">
+                    <div class="col-span-3"></div>
+                    <div data-key=" " class="v-key col-span-6 bg-cyan-50 border border-cyan-300 rounded-xl py-1.5 text-center font-mono text-xs font-bold text-cyan-800 tracking-widest">SPAZIO</div>
+                    <div data-key="!" class="v-key col-span-1 bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs font-semibold">!</div>
+                    <div data-key="?" class="v-key col-span-1 bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs font-semibold">?</div>
+                    <div data-key="-" class="v-key col-span-1 bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs font-semibold">-</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="mt-3 text-center text-xs text-slate-500 font-medium pb-2">
+            Daily Routine Typing Pro • Piattaforma Didattica di Inglese & Tecnologia per la Scuola Secondaria di I Grado
+        </footer>
+    </div>
+
+    <!-- MODALE RISULTATI FINALI, PREMI BONUS & DOWNLOAD REPORT -->
+    <div id="results-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white border-4 border-cyan-300 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl animate-pop my-auto">
+            
+            <div class="text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-amber-300 via-pink-400 to-cyan-400 text-3xl shadow-lg mb-2 animate-bounce">
+                    🏆
+                </div>
+                <h2 class="font-display text-3xl sm:text-4xl font-bold bg-gradient-to-r from-violet-600 via-pink-500 to-cyan-500 bg-clip-text text-transparent">
+                    Sessione Completata!
+                </h2>
+                <p id="result-grade-comment" class="text-sm sm:text-base text-emerald-700 font-bold mt-1">
+                    Valutazione: Ottimo lavoro!
+                </p>
+            </div>
+
+            <!-- Conferma Nome Studente -->
+            <div class="mt-4 bg-violet-50 rounded-2xl p-3 flex flex-col sm:flex-row items-center justify-between gap-2 border border-violet-200">
+                <label for="modal-student-name" class="text-xs font-bold uppercase tracking-wider text-violet-700">
+                    👤 Studente per il Report:
+                </label>
+                <input type="text" id="modal-student-name" placeholder="Inserisci Nome, Cognome e Classe..."
+                    class="w-full sm:w-2/3 bg-white border border-violet-300 rounded-xl px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:border-violet-500">
+            </div>
+
+            <!-- Griglia Metriche Finali -->
+            <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <div class="bg-violet-50 border border-violet-200 rounded-2xl p-3 text-center">
+                    <div class="text-[11px] uppercase font-bold text-violet-600">Velocità</div>
+                    <div id="final-wpm" class="font-display text-2xl font-bold text-slate-800 mt-0.5">0 WPM</div>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 text-center">
+                    <div class="text-[11px] uppercase font-bold text-emerald-600">Precisione</div>
+                    <div id="final-accuracy" class="font-display text-2xl font-bold text-slate-800 mt-0.5">100%</div>
+                </div>
+                <div class="bg-pink-50 border border-pink-200 rounded-2xl p-3 text-center">
+                    <div class="text-[11px] uppercase font-bold text-pink-600">Max Combo</div>
+                    <div id="final-streak" class="font-display text-2xl font-bold text-slate-800 mt-0.5">0</div>
+                </div>
+                <div class="bg-amber-50 border border-amber-300 rounded-2xl p-3 text-center">
+                    <div class="text-[11px] uppercase font-bold text-amber-700">Punteggio XP</div>
+                    <div id="final-score" class="font-display text-2xl font-bold text-amber-600 mt-0.5">0</div>
+                </div>
+            </div>
+
+            <!-- Premi Bonus Conquistati -->
+            <div class="mt-4">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-pink-600 mb-2 flex items-center gap-1.5">
+                    <span>🎖️</span> Premi Bonus & Trofei Sbloccati:
+                </h3>
+                <div id="badges-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
+                    <!-- Popolato da JS -->
+                </div>
+            </div>
+
+            <!-- Pulsanti Download Report & Nuova Sfida -->
+            <div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-2.5">
+                <button onclick="downloadReport()" 
+                    class="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-500 hover:from-emerald-300 hover:to-cyan-400 text-slate-900 font-display font-bold text-base shadow-lg shadow-cyan-500/25 transform hover:scale-[1.02] transition cursor-pointer">
+                    <span>📥</span>
+                    <span>Scarica Report (.html)</span>
+                </button>
+
+                <button onclick="downloadTxtReport()" title="Scarica versione testo"
+                    class="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 font-bold text-sm transition cursor-pointer">
+                    <span>📄</span>
+                    <span>.TXT</span>
+                </button>
+
+                <button onclick="closeModalAndRestart()" 
+                    class="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-violet-600 to-pink-500 hover:from-violet-500 hover:to-pink-400 text-white font-display font-bold text-base shadow-lg shadow-pink-500/25 transform hover:scale-[1.02] transition cursor-pointer">
+                    <span>🔄</span>
+                    <span>Nuova Prova</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE STORICO SESSIONI PIATTAFORMA -->
+    <div id="history-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white border-4 border-amber-300 rounded-3xl max-w-xl w-full p-6 shadow-2xl animate-pop">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h2 class="font-display text-2xl font-bold text-amber-600 flex items-center gap-2">
+                    <span>📊</span> Storico Progressi (Ultimi 15)
+                </h2>
+                <button onclick="closeHistoryModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold cursor-pointer">✕</button>
+            </div>
+            <div id="history-list-container" class="mt-4 max-h-72 overflow-y-auto space-y-2 text-sm">
+                <!-- Popolato da JS -->
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center">
+                <button onclick="clearHistory()" class="text-xs font-bold text-rose-500 hover:underline cursor-pointer">🗑️ Cancella Storico</button>
+                <button onclick="closeHistoryModal()" class="px-5 py-2 rounded-xl bg-amber-400 text-slate-900 font-display font-bold text-sm cursor-pointer">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * ARCHIVIO TESTI PER TIPOLOGIA E LIVELLO DI DIFFICOLTÀ
+         */
+        const CONTENT_BANK = {
+            routine: {
+                easy: [
+                    { topic: "Morning Wake-up", emoji: "⏰", en: "I wake up at seven o'clock every morning.", it: "Mi sveglio alle sette ogni mattina." },
+                    { topic: "Personal Hygiene", emoji: "🪥", en: "I wash my face and brush my teeth.", it: "Mi lavo la faccia e mi lavo i denti." },
+                    { topic: "Breakfast Time", emoji: "🥐", en: "I eat toast and drink orange juice for breakfast.", it: "Mangio pane tostato e bevo succo d'arancia a colazione." },
+                    { topic: "Going to School", emoji: "🚌", en: "I go to school by bus with my best friend.", it: "Vado a scuola in autobus con il mio migliore amico." },
+                    { topic: "Lunch Break", emoji: "🍝", en: "I have lunch at home at half past one.", it: "Pranzo a casa all'una e mezza." },
+                    { topic: "Homework", emoji: "✏️", en: "In the afternoon, I do my homework in my room.", it: "Nel pomeriggio faccio i compiti nella mia camera." },
+                    { topic: "Dinner & Bedtime", emoji: "🌙", en: "We have dinner at eight and I go to bed at ten.", it: "Ceniamo alle otto e vado a letto alle dieci." }
+                ],
+                medium: [
+                    { topic: "Morning Habits", emoji: "🌅", en: "When my alarm clock rings at 7:00, I usually get up immediately and get dressed.", it: "Quando la sveglia suona alle 7:00, di solito mi alzo subito e mi vesto." },
+                    { topic: "Healthy Breakfast", emoji: "🥣", en: "Before leaving home, I always have a healthy breakfast with cereal, milk, and fresh fruit.", it: "Prima di uscire di casa faccio sempre una colazione sana con cereali, latte e frutta." },
+                    { topic: "School Timetable", emoji: "🏫", en: "Lessons start at 8:15 and we have six subjects, including Science, History, and English.", it: "Le lezioni iniziano alle 8:15 e abbiamo sei materie tra cui Scienze, Storia e Inglese." },
+                    { topic: "Afternoon Routine", emoji: "🎧", en: "After doing my homework, I often listen to music or play basketball with my friends.", it: "Dopo aver fatto i compiti ascolto spesso musica o gioco a basket con i miei amici." },
+                    { topic: "Weekend Routine", emoji: "🎉", en: "On Sundays, I never wake up early because I love relaxing until ten o'clock!", it: "La domenica non mi sveglio mai presto perché adoro rilassarmi fino alle dieci!" }
+                ],
+                hard: [
+                    { topic: "Busy School Morning", emoji: "🚀", en: "Although I am not a morning person, I always set my alarm for 6:45 a.m. so I have enough time to pack my schoolbag and check my timetable.", it: "Sebbene non sia mattiniero, punto sempre la sveglia alle 6:45 per avere tempo di preparare lo zaino." },
+                    { topic: "Digital & Study Balance", emoji: "💻", en: "Since this is my final year of middle school, I organize my daily schedule carefully to balance homework, oral presentations, and relaxing hobbies.", it: "Dato che è il mio ultimo anno di medie, organizzo con cura la giornata per bilanciare compiti e hobby." },
+                    { topic: "Evening Habits", emoji: "📚", en: "In the evening, I try not to spend too much time scrolling on my smartphone; instead, I prepare my clothes for the next day and read a novel.", it: "La sera cerco di non stare troppo sullo smartphone; preparo invece i vestiti per il giorno dopo e leggo un romanzo." }
+                ]
+            },
+            dialogues: {
+                easy: [
+                    { topic: "Chat: Morning Routine", emoji: "💬", en: "Alex: Hi Maya! What time do you get up? Maya: I get up at seven, and you?", it: "Alex: Ciao Maya! A che ora ti alzi? Maya: Mi alzo alle sette, e tu?" },
+                    { topic: "Chat: Going to School", emoji: "🚌", en: "Leo: Do you walk to school? Sara: No, I take the bus with my brother.", it: "Leo: Vai a scuola a piedi? Sara: No, prendo l'autobus con mio fratello." },
+                    { topic: "Chat: After School", emoji: "⚽", en: "Tom: What do you do after lunch? Emma: I do my homework and play tennis!", it: "Tom: Cosa fai dopo pranzo? Emma: Faccio i compiti e gioco a tennis!" }
+                ],
+                medium: [
+                    { topic: "Dialogue: School Break", emoji: "🥪", en: "Liam: Are you ready for the English test? Chloe: Yes! I studied yesterday afternoon after basketball practice.", it: "Liam: Sei pronta per la verifica di inglese? Chloe: Sì! Ho studiato ieri pomeriggio dopo allenamento." },
+                    { topic: "Dialogue: Weekend Plans", emoji: "🎬", en: "Noah: How often do you go to the cinema? Mia: Usually twice a month on Saturday evening!", it: "Noah: Quanto spesso vai al cinema? Mia: Di solito due volte al mese il sabato sera!" }
+                ],
+                hard: [
+                    { topic: "Interview: Teen Routine", emoji: "🎙️", en: "Interviewer: How do you manage your busy daily routine? Student: I always write a to-do list after dinner so I never forget my school assignments!", it: "Intervistatore: Come gestisci la tua routine? Studente: Scrivo sempre una lista dopo cena per non dimenticare i compiti!" }
+                ]
+            },
+            diary: {
+                easy: [
+                    { topic: "My Diary: Monday", emoji: "📔", en: "Dear Diary, today is Monday. I woke up early, had breakfast, and went to school.", it: "Caro Diario, oggi è lunedì. Mi sono svegliato presto, ho fatto colazione e sono andato a scuola." },
+                    { topic: "Penpal Email", emoji: "✉️", en: "Hi Jack! In Italy my school starts at eight. In the afternoon I play video games.", it: "Ciao Jack! In Italia la mia scuola inizia alle otto. Nel pomeriggio gioco ai videogiochi." }
+                ],
+                medium: [
+                    { topic: "Email to a Penpal", emoji: "📧", en: "Dear Emily, thanks for your email! On weekdays my routine is quite busy, because I have lessons until 1:30 p.m. and swimming training twice a week.", it: "Cara Emily, grazie per l'email! Nei giorni feriali la mia routine è intensa perché ho lezioni fino alle 13:30." },
+                    { topic: "My Diary: Friday", emoji: "📖", en: "Dear Diary, Friday is my favourite day! After finishing my homework, I always order pizza with my family and watch an adventure movie.", it: "Caro Diario, il venerdì è il mio giorno preferito! Dopo i compiti ordiniamo sempre la pizza in famiglia." }
+                ],
+                hard: [
+                    { topic: "Blog Post: A Day in Italy", emoji: "🌍", en: "Welcome to my blog! Today I want to describe a typical day in the life of an Italian middle school student, from our morning espresso and biscuits to our evening family dinner.", it: "Benvenuti nel mio blog! Oggi voglio descrivere una giornata tipica di uno studente italiano delle medie." }
+                ]
+            },
+            twisters: {
+                easy: [
+                    { topic: "Tongue Twister #1", emoji: "🌪️", en: "Seven sleepy students study science on Sunday!", it: "Sette studenti assonnati studiano scienze di domenica!" },
+                    { topic: "Tongue Twister #2", emoji: "🧼", en: "Timmy takes two quick showers every Tuesday.", it: "Timmy fa due docce veloci ogni martedì." }
+                ],
+                medium: [
+                    { topic: "Tongue Twister #3", emoji: "🥣", en: "Busy Billy brushes his boots before eating bright yellow bananas for breakfast.", it: "Il frenetico Billy spazzola i suoi stivali prima di mangiare banane gialle a colazione." },
+                    { topic: "Irregular Verbs Sprint", emoji: "⚡", en: "Wake, woke, woken! Eat, ate, eaten! Write, wrote, written! Go, went, gone!", it: "Svegliarsi, mangiare, scrivere, andare: paradgmi dei verbi irregolari!" }
+                ],
+                hard: [
+                    { topic: "Master Tongue Twister", emoji: "🔥", en: "Thirty-three thirsty teenagers thanked their teacher Thursday afternoon after finishing their thorough English grammar exercises.", it: "Trentatré adolescenti assetati hanno ringraziato il loro insegnante giovedì pomeriggio." }
+                ]
+            }
+        };
+
+        /**
+         * PAROLE DI DEFAULT PER LA SEZIONE "LA MIA LISTA DI PAROLE"
+         */
+        const DEFAULT_USER_WORDS = [
+            { en: "wake up", it: "svegliarsi" },
+            { en: "get dressed", it: "vestirsi" },
+            { en: "brush my teeth", it: "lavarsi i denti" },
+            { en: "have breakfast", it: "fare colazione" },
+            { en: "catch the bus", it: "prendere l'autobus" },
+            { en: "do homework", it: "fare i compiti" },
+            { en: "tidy my bedroom", it: "riordinare la camera" },
+            { en: "have a shower", it: "fare la doccia" },
+            { en: "go to sleep", it: "andare a dormire" }
+        ];
+
+        const STORAGE_KEYS = {
+            WORDS: 'dr_typing_pro_words_v1',
+            HISTORY: 'dr_typing_pro_history_v1',
+            STUDENT: 'dr_typing_pro_student_v1'
+        };
+
+        /**
+         * STATO GLOBALE DELL'APPLICAZIONE
+         */
+        let state = {
+            category: 'routine',         // 'routine' | 'dialogues' | 'diary' | 'twisters' | 'custom_text' | 'word_list'
+            difficulty: 'easy',          // 'easy' | 'medium' | 'hard'
+            selectedDuration: 180,       // Secondi (default 3 min)
+            isFreeMode: false,           // Modalità cronometro infinito
+            timeLeft: 180,
+            elapsedFreeSeconds: 0,
+            isRunning: false,
+            isFinished: false,
+            timerInterval: null,
+
+            // Testo attivo
+            currentPromptObj: null,
+            usedIndices: [],
+            charIndex: 0,
+            phraseStartTime: null,
+
+            // Testo incollato personalizzato
+            customTextTitle: 'Testo Personalizzato',
+            customTextContent: 'Every morning I wake up at seven o\'clock, eat a healthy breakfast, and get ready for school.',
+
+            // Lista parole utente
+            userWords: [],
+            wordTrainingMode: 'sequential', // 'sequential' | 'shuffle' | 'intensive'
+            wordSeqIndex: 0,
+
+            // Statistiche sessione
+            totalKeystrokes: 0,
+            correctChars: 0,
+            errorCount: 0,
+            currentStreak: 0,
+            maxStreak: 0,
+            completedItems: 0,
+            bonusPoints: 0,
+            earnedBadges: [],
+            finalMetrics: null,
+
+            // UI
+            soundEnabled: true,
+            keyboardVisible: true
+        };
+
+        /**
+         * AUDIO SYNTH (Web Audio API - Nessun file esterno)
+         */
+        let audioCtx = null;
+        function playSound(type) {
+            if (!state.soundEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'key') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(560 + Math.min(state.currentStreak * 3, 280), now);
+                    gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+                    osc.start(now);
+                    osc.stop(now + 0.045);
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(170, now);
+                    osc.frequency.linearRampToValueAtTime(120, now + 0.13);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+                    osc.start(now);
+                    osc.stop(now + 0.14);
+                } else if (type === 'phrase') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.07);
+                    osc.frequency.setValueAtTime(783.99, now + 0.14);
+                    gain.gain.setValueAtTime(0.11, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+                    osc.start(now);
+                    osc.stop(now + 0.32);
+                } else if (type === 'bonus') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, now);
+                    osc.frequency.setValueAtTime(1174.66, now + 0.08);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'finish') {
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.type = 'triangle';
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.frequency.setValueAtTime(freq, now + i * 0.11);
+                        g.gain.setValueAtTime(0.12, now + i * 0.11);
+                        g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.11 + 0.38);
+                        o.start(now + i * 0.11);
+                        o.stop(now + i * 0.11 + 0.38);
+                    });
+                }
+            } catch (e) {}
+        }
+
+        /**
+         * INIZIALIZZAZIONE
+         */
+        window.onload = function() {
+            loadSavedData();
+            loadNextPrompt();
+            updateTimerUI();
+            focusTypingInput();
+
+            const inputEl = document.getElementById('hidden-typing-input');
+            inputEl.addEventListener('input', handleTypingInput);
+            inputEl.addEventListener('keydown', handleKeyDownVisual);
+            inputEl.addEventListener('keyup', handleKeyUpVisual);
+
+            // Sincronizzazione e salvataggio nome studente
+            const headerName = document.getElementById('student-name-input');
+            const modalName = document.getElementById('modal-student-name');
+            headerName.addEventListener('input', (e) => {
+                modalName.value = e.target.value;
+                localStorage.setItem(STORAGE_KEYS.STUDENT, e.target.value);
+            });
+            modalName.addEventListener('input', (e) => {
+                headerName.value = e.target.value;
+                localStorage.setItem(STORAGE_KEYS.STUDENT, e.target.value);
+            });
+        };
+
+        function loadSavedData() {
+            // Nome studente
+            const savedName = localStorage.getItem(STORAGE_KEYS.STUDENT) || '';
+            document.getElementById('student-name-input').value = savedName;
+            document.getElementById('modal-student-name').value = savedName;
+
+            // Parole personalizzate
+            try {
+                const rawWords = localStorage.getItem(STORAGE_KEYS.WORDS);
+                if (rawWords) {
+                    const parsed = JSON.parse(rawWords);
+                    state.userWords = Array.isArray(parsed) && parsed.length > 0 ? parsed : [...DEFAULT_USER_WORDS];
+                } else {
+                    state.userWords = [...DEFAULT_USER_WORDS];
+                }
+            } catch (e) {
+                state.userWords = [...DEFAULT_USER_WORDS];
+            }
+            saveUserWords();
+            renderWordChips();
+        }
+
+        function saveUserWords() {
+            localStorage.setItem(STORAGE_KEYS.WORDS, JSON.stringify(state.userWords));
+            document.getElementById('saved-words-count-pill').textContent = state.userWords.length;
+        }
+
+        /**
+         * GESTIONE TIPOLOGIE DI TESTO (6 MODALITÀ)
+         */
+        function selectCategory(cat) {
+            state.category = cat;
+            state.usedIndices = [];
+            state.wordSeqIndex = 0;
+
+            const catMeta = {
+                routine: { desc: "Frasi e paragrafi graduali sulla giornata tipo", color: "from-cyan-500 to-blue-500 border-cyan-400" },
+                dialogues: { desc: "Conversazioni realistiche tra compagni di classe", color: "from-pink-500 to-rose-500 border-pink-400" },
+                diary: { desc: "Pagine di diario ed email a un amico di penna", color: "from-amber-400 to-orange-500 border-amber-400" },
+                twisters: { desc: "Scioglilingua e paradigmi per velocizzare le dita", color: "from-emerald-400 to-teal-500 border-emerald-400" },
+                custom_text: { desc: "Incolla qualsiasi brano o testo personalizzato", color: "from-violet-600 to-purple-500 border-violet-400" },
+                word_list: { desc: "Allenati sulla tua lista personale salvata", color: "from-rose-500 to-pink-500 border-rose-400" }
+            };
+
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.className = 'cat-btn flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-2xl border-2 font-display font-bold text-xs sm:text-sm transition cursor-pointer bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200';
+            });
+
+            const activeBtn = document.getElementById(`cat-btn-${cat}`);
+            if (activeBtn) {
+                activeBtn.className = `cat-btn flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-2xl border-2 font-display font-bold text-xs sm:text-sm transition cursor-pointer bg-gradient-to-r ${catMeta[cat].color} text-white shadow-md`;
+            }
+            document.getElementById('category-badge-info').textContent = catMeta[cat].desc;
+
+            // Mostra/nascondi pannelli dedicati
+            document.getElementById('panel-custom-text').classList.toggle('hidden', cat !== 'custom_text');
+            document.getElementById('panel-word-list').classList.toggle('hidden', cat !== 'word_list');
+
+            // Disabilita visivamente i livelli se siamo su testo incollato o lista parole
+            const diffBox = document.getElementById('difficulty-box');
+            if (cat === 'custom_text' || cat === 'word_list') {
+                diffBox.classList.add('opacity-50', 'pointer-events-none');
+            } else {
+                diffBox.classList.remove('opacity-50', 'pointer-events-none');
+            }
+
+            resetExercise();
+        }
+
+        /**
+         * GESTIONE LIVELLI DI DIFFICOLTÀ E TIMER FLESSIBILE
+         */
+        function selectDifficulty(level, allowAutoTimer = true) {
+            state.difficulty = level;
+            state.usedIndices = [];
+
+            const levelConfig = {
+                easy: { active: 'bg-emerald-500 border-emerald-400 text-white shadow-md shadow-emerald-500/20', desc: 'Frasi brevi • Timer suggerito 3:00', defaultSec: 180 },
+                medium: { active: 'bg-amber-400 border-amber-500 text-slate-900 shadow-md shadow-amber-500/20', desc: 'Avverbi e orari • Timer suggerito 2:00', defaultSec: 120 },
+                hard: { active: 'bg-pink-500 border-pink-400 text-white shadow-md shadow-pink-500/20', desc: 'Paragrafi ricchi • Timer suggerito 1:30', defaultSec: 90 }
+            };
+
+            ['easy', 'medium', 'hard'].forEach(lvl => {
+                const btn = document.getElementById(`btn-diff-${lvl}`);
+                if (lvl === level) {
+                    btn.className = `diff-btn flex flex-col items-center justify-center p-2.5 rounded-2xl border-2 transition cursor-pointer ${levelConfig[lvl].active}`;
+                    document.getElementById('level-desc-badge').textContent = levelConfig[lvl].desc;
+                } else {
+                    btn.className = 'diff-btn flex flex-col items-center justify-center p-2.5 rounded-2xl border-2 transition cursor-pointer bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-700';
+                }
+            });
+
+            // Se l'opzione "Adatta timer al livello" è attiva, aggiorna il timer automaticamente
+            const autoSync = document.getElementById('sync-timer-level-check').checked;
+            if (allowAutoTimer && autoSync && !state.isFreeMode) {
+                setTimerPreset(levelConfig[level].defaultSec, false);
+            } else {
+                resetExercise();
+            }
+        }
+
+        function setTimerPreset(seconds, shouldReset = true) {
+            state.isFreeMode = false;
+            state.selectedDuration = seconds;
+            state.timeLeft = seconds;
+
+            syncDurationInputs(seconds);
+            highlightTimerButton(`btn-time-${seconds}`);
+            if (shouldReset) resetExercise();
+        }
+
+        function setFreeStopwatchMode() {
+            state.isFreeMode = true;
+            state.elapsedFreeSeconds = 0;
+            highlightTimerButton('btn-time-free');
+            resetExercise();
+            showToast('∞ Modalità Cronometro Libero attivata!', 'from-cyan-500 to-blue-600');
+        }
+
+        function applyCustomDurationInputs() {
+            let mins = parseInt(document.getElementById('custom-min-input').value, 10) || 0;
+            let secs = parseInt(document.getElementById('custom-sec-input').value, 10) || 0;
+            mins = Math.max(0, Math.min(59, mins));
+            secs = Math.max(0, Math.min(59, secs));
+
+            let total = (mins * 60) + secs;
+            if (total < 10) total = 10; // Minimo 10 secondi
+
+            state.isFreeMode = false;
+            state.selectedDuration = total;
+            state.timeLeft = total;
+            syncDurationInputs(total);
+            highlightTimerButton(`btn-time-${total}`);
+            resetExercise();
+        }
+
+        function adjustTimerSeconds(delta) {
+            if (state.isFreeMode) {
+                state.isFreeMode = false;
+                state.selectedDuration = 180;
+            }
+            let next = Math.max(15, Math.min(3599, state.selectedDuration + delta));
+            state.selectedDuration = next;
+            state.timeLeft = next;
+            syncDurationInputs(next);
+            highlightTimerButton(`btn-time-${next}`);
+            resetExercise();
+        }
+
+        function syncDurationInputs(totalSeconds) {
+            document.getElementById('custom-min-input').value = Math.floor(totalSeconds / 60);
+            document.getElementById('custom-sec-input').value = totalSeconds % 60;
+        }
+
+        function highlightTimerButton(activeId) {
+            document.querySelectorAll('.time-btn').forEach(btn => {
+                btn.className = 'time-btn py-1.5 px-1 rounded-xl border-2 font-display font-bold text-xs transition cursor-pointer bg-slate-50 border-slate-200 hover:bg-amber-50 text-slate-700';
+            });
+            const active = document.getElementById(activeId);
+            if (active) {
+                active.className = 'time-btn py-1.5 px-1 rounded-xl border-2 font-display font-bold text-xs transition cursor-pointer bg-amber-400 border-amber-500 text-slate-900 shadow-sm';
+            }
+        }
+
+        /**
+         * GESTIONE TESTO PERSONALIZZATO INCOLLATO
+         */
+        async function pasteFromClipboard() {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text) {
+                    document.getElementById('custom-text-area').value = text;
+                    showToast('📋 Testo incollato dagli appunti!', 'from-violet-500 to-purple-600');
+                }
+            } catch (e) {
+                showToast('⚠️ Usa Ctrl+V (o Cmd+V) direttamente nel riquadro!', 'from-amber-500 to-orange-600');
+                document.getElementById('custom-text-area').focus();
+            }
+        }
+
+        function clearCustomText() {
+            document.getElementById('custom-text-area').value = '';
+            document.getElementById('custom-text-area').focus();
+        }
+
+        function applyCustomText() {
+            let raw = document.getElementById('custom-text-area').value.trim();
+            if (!raw) {
+                showToast('⚠️ Incolla o scrivi prima un testo nel riquadro!', 'from-rose-500 to-red-600');
+                return;
+            }
+            if (document.getElementById('normalize-spaces-check').checked) {
+                raw = raw.replace(/\s+/g, ' ');
+            }
+            const title = document.getElementById('custom-text-title').value.trim() || 'Testo Personalizzato';
+            state.customTextTitle = title;
+            state.customTextContent = raw;
+            resetExercise();
+            showToast('✅ Testo caricato! Inizia a digitare.', 'from-emerald-500 to-teal-600');
+        }
+
+        /**
+         * GESTIONE LISTA DI PAROLE PERSONALIZZATE (PIATTAFORMA SALVATA)
+         */
+        function addSingleWord() {
+            const enInput = document.getElementById('new-word-en');
+            const itInput = document.getElementById('new-word-it');
+            const enVal = enInput.value.trim();
+            const itVal = itInput.value.trim();
+
+            if (!enVal) {
+                showToast('⚠️ Inserisci almeno la parola o frase in inglese!', 'from-rose-500 to-red-600');
+                enInput.focus();
+                return;
+            }
+
+            state.userWords.unshift({ en: enVal, it: itVal });
+            saveUserWords();
+            renderWordChips();
+
+            enInput.value = '';
+            itInput.value = '';
+            enInput.focus();
+
+            if (state.category === 'word_list') {
+                loadNextPrompt();
+            }
+            showToast(`⭐ Aggiunta: "${enVal}"`, 'from-pink-500 to-rose-600');
+        }
+
+        function removeUserWord(index) {
+            if (state.userWords.length <= 1) {
+                showToast('⚠️ Mantieni almeno una parola nella lista!', 'from-amber-500 to-orange-600');
+                return;
+            }
+            state.userWords.splice(index, 1);
+            saveUserWords();
+            renderWordChips();
+            if (state.category === 'word_list') loadNextPrompt();
+        }
+
+        function toggleBulkWordBox() {
+            document.getElementById('bulk-word-box').classList.toggle('hidden');
+        }
+
+        function importBulkWords() {
+            const raw = document.getElementById('bulk-word-textarea').value.trim();
+            if (!raw) return;
+
+            const entries = raw.split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
+            let addedCount = 0;
+
+            entries.forEach(entry => {
+                const parts = entry.split(/\s*[-–=:]\s*/);
+                const en = parts[0]?.trim();
+                const it = parts[1]?.trim() || '';
+                if (en) {
+                    state.userWords.unshift({ en, it });
+                    addedCount++;
+                }
+            });
+
+            if (addedCount > 0) {
+                saveUserWords();
+                renderWordChips();
+                document.getElementById('bulk-word-textarea').value = '';
+                toggleBulkWordBox();
+                if (state.category === 'word_list') loadNextPrompt();
+                showToast(`🎉 Importate ${addedCount} nuove parole!`, 'from-violet-600 to-indigo-600');
+            }
+        }
+
+        function setWordMode(mode) {
+            state.wordTrainingMode = mode;
+            state.wordSeqIndex = 0;
+            document.querySelectorAll('.wmode-btn').forEach(btn => {
+                btn.className = 'wmode-btn px-2.5 py-1 rounded-xl text-xs font-bold text-pink-700 hover:bg-pink-100 cursor-pointer';
+            });
+            document.getElementById(`wmode-${mode}`).className = 'wmode-btn px-2.5 py-1 rounded-xl text-xs font-bold bg-pink-500 text-white cursor-pointer';
+            if (state.category === 'word_list') loadNextPrompt();
+        }
+
+        function renderWordChips() {
+            const container = document.getElementById('saved-words-chips');
+            const filter = (document.getElementById('search-word-input')?.value || '').toLowerCase();
+
+            const filtered = state.userWords
+                .map((item, idx) => ({ ...item, originalIdx: idx }))
+                .filter(item => item.en.toLowerCase().includes(filter) || item.it.toLowerCase().includes(filter));
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<span class="text-xs text-slate-400 italic p-2">Nessuna parola trovata.</span>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(item => `
+                <div class="inline-flex items-center gap-1.5 bg-gradient-to-r from-pink-50 to-amber-50 border border-pink-200 rounded-xl px-2.5 py-1 text-xs shadow-sm">
+                    <span class="font-mono font-bold text-slate-800">${escapeHtml(item.en)}</span>
+                    ${item.it ? `<span class="text-slate-500">(${escapeHtml(item.it)})</span>` : ''}
+                    <button onclick="removeUserWord(${item.originalIdx})" title="Rimuovi parola" class="text-rose-400 hover:text-rose-600 font-bold ml-1 cursor-pointer">×</button>
+                </div>
+            `).join('');
+        }
+
+        function exportWordListJson() {
+            const lines = state.userWords.map(w => w.it ? `${w.en} - ${w.it}` : w.en).join('\n');
+            const blob = new Blob([lines], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'La_Mia_Lista_Parole_Inglese.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function resetDefaultWords() {
+            state.userWords = [...DEFAULT_USER_WORDS];
+            saveUserWords();
+            renderWordChips();
+            if (state.category === 'word_list') loadNextPrompt();
+            showToast('🔄 Lista parole ripristinata ai valori iniziali!', 'from-cyan-500 to-blue-600');
+        }
+
+        /**
+         * CARICAMENTO ELEMENTO SUCCESSIVO IN BASE ALLA TIPOLOGIA
+         */
+        function loadNextPrompt() {
+            state.charIndex = 0;
+            state.phraseStartTime = Date.now();
+
+            if (state.category === 'custom_text') {
+                state.currentPromptObj = {
+                    topic: state.customTextTitle,
+                    emoji: '📋',
+                    en: state.customTextContent,
+                    it: 'Completa il testo personalizzato che hai inserito.'
+                };
+            } else if (state.category === 'word_list') {
+                const words = state.userWords.length > 0 ? state.userWords : DEFAULT_USER_WORDS;
+                if (state.wordTrainingMode === 'intensive') {
+                    // Genera una sequenza mista di 5 parole dalla lista
+                    const picked = [];
+                    for (let i = 0; i < Math.min(5, words.length); i++) {
+                        picked.push(words[Math.floor(Math.random() * words.length)]);
+                    }
+                    state.currentPromptObj = {
+                        topic: 'Mix Intensivo Vocabolario',
+                        emoji: '🔥',
+                        en: picked.map(p => p.en).join(' '),
+                        it: 'Significati: ' + picked.map(p => p.it || p.en).join(' • ')
+                    };
+                } else if (state.wordTrainingMode === 'shuffle') {
+                    const item = words[Math.floor(Math.random() * words.length)];
+                    state.currentPromptObj = {
+                        topic: 'Parola Casuale (Lista Personale)',
+                        emoji: '🔀',
+                        en: item.en,
+                        it: item.it ? `Significato: "${item.it}"` : 'Digita la parola/espressione salvata'
+                    };
+                } else {
+                    const item = words[state.wordSeqIndex % words.length];
+                    state.wordSeqIndex++;
+                    state.currentPromptObj = {
+                        topic: `Vocabolario (${((state.wordSeqIndex - 1) % words.length) + 1}/${words.length})`,
+                        emoji: '⭐',
+                        en: item.en,
+                        it: item.it ? `Significato: "${item.it}"` : 'Digita la parola/espressione salvata'
+                    };
+                }
+            } else {
+                // Categorie standard: routine, dialogues, diary, twisters
+                const bank = CONTENT_BANK[state.category][state.difficulty];
+                if (state.usedIndices.length >= bank.length) state.usedIndices = [];
+
+                let idx;
+                do {
+                    idx = Math.floor(Math.random() * bank.length);
+                } while (state.usedIndices.includes(idx) && state.usedIndices.length < bank.length);
+
+                state.usedIndices.push(idx);
+                state.currentPromptObj = bank[idx];
+            }
+
+            document.getElementById('topic-emoji').textContent = state.currentPromptObj.emoji;
+            document.getElementById('topic-title').textContent = `${state.currentPromptObj.topic}`;
+            document.getElementById('italian-hint').textContent = state.currentPromptObj.it.startsWith('🇮🇹')
+                ? state.currentPromptObj.it
+                : `💡 ${state.currentPromptObj.it}`;
+
+            renderPromptText();
+            highlightNextVirtualKey();
+        }
+
+        function renderPromptText() {
+            const container = document.getElementById('prompt-display');
+            const text = state.currentPromptObj.en;
+            let html = '';
+
+            for (let i = 0; i < text.length; i++) {
+                const ch = text[i] === ' ' ? '&nbsp;' : escapeHtml(text[i]);
+                if (i < state.charIndex) {
+                    html += `<span class="char-correct">${ch}</span>`;
+                } else if (i === state.charIndex) {
+                    html += `<span id="active-char" class="char-current px-0.5">${ch}</span>`;
+                } else {
+                    html += `<span>${ch}</span>`;
+                }
+            }
+            container.innerHTML = html;
+            document.getElementById('progress-counter-text').textContent = `${state.charIndex} / ${text.length} car.`;
+
+            // Auto-scroll fluido se il testo è lungo (es. brano incollato)
+            const activeEl = document.getElementById('active-char');
+            if (activeEl) {
+                activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        /**
+         * MOTORE DI DIGITAZIONE
+         */
+        function handleTypingInput(e) {
+            if (state.isFinished) return;
+
+            const inputEl = e.target;
+            const val = inputEl.value;
+            if (!val) return;
+
+            const typedChar = val.slice(-1);
+            inputEl.value = '';
+
+            if (!state.isRunning) {
+                startTimer();
+            }
+
+            const targetText = state.currentPromptObj.en;
+            const expectedChar = targetText[state.charIndex];
+            state.totalKeystrokes++;
+
+            if (typedChar === expectedChar) {
+                state.correctChars++;
+                state.charIndex++;
+                state.currentStreak++;
+                if (state.currentStreak > state.maxStreak) state.maxStreak = state.currentStreak;
+
+                playSound('key');
+                checkComboBonus();
+
+                if (state.charIndex >= targetText.length) {
+                    handlePromptCompleted();
+                } else {
+                    renderPromptText();
+                    highlightNextVirtualKey();
+                }
+            } else {
+                state.errorCount++;
+                state.currentStreak = 0;
+                playSound('error');
+
+                const activeSpan = document.getElementById('active-char');
+                if (activeSpan) activeSpan.classList.add('char-incorrect');
+
+                const card = document.getElementById('typing-card');
+                card.classList.remove('animate-shake');
+                void card.offsetWidth;
+                card.classList.add('animate-shake');
+            }
+
+            updateStatsUI();
+        }
+
+        function handlePromptCompleted() {
+            state.completedItems++;
+            playSound('phrase');
+
+            const secondsTaken = Math.max(0.5, (Date.now() - state.phraseStartTime) / 1000);
+            const itemWpm = Math.round(((state.currentPromptObj.en.length / 5) / secondsTaken) * 60);
+
+            let basePts = state.difficulty === 'hard' ? 140 : (state.difficulty === 'medium' ? 90 : 60);
+            if (state.category === 'custom_text') basePts = Math.max(100, Math.round(state.currentPromptObj.en.length * 1.2));
+
+            state.bonusPoints += basePts;
+
+            if (itemWpm >= 45) {
+                state.bonusPoints += 75;
+                showToast(`⚡ Turbo (${itemWpm} WPM)! +${basePts + 75} XP`, 'from-cyan-500 to-blue-600');
+            } else {
+                showToast(`✅ Completato! +${basePts} XP`, 'from-emerald-500 to-teal-600');
+            }
+
+            // Se l'utente ha incollato un brano intero in modalità cronometro libero, chiediamo se ha finito o ricominciamo
+            if (state.category === 'custom_text' && state.isFreeMode) {
+                finishSession();
+                return;
+            }
+
+            loadNextPrompt();
+        }
+
+        function checkComboBonus() {
+            if (state.currentStreak === 30) {
+                state.bonusPoints += 50;
+                playSound('bonus');
+                showToast('🔥 Combo 30x! +50 XP', 'from-amber-500 to-orange-500');
+            } else if (state.currentStreak === 75) {
+                state.bonusPoints += 120;
+                playSound('bonus');
+                showToast('🚀 Super Combo 75x! +120 XP', 'from-pink-500 to-rose-500');
+            } else if (state.currentStreak > 0 && state.currentStreak % 100 === 0) {
+                state.bonusPoints += 200;
+                playSound('bonus');
+                showToast(`💎 Leggenda ${state.currentStreak}x! +200 XP`, 'from-violet-600 to-indigo-600');
+            }
+        }
+
+        /**
+         * GESTIONE TIMER VISIVO & CRONOMETRO LIBERO
+         */
+        function startTimer() {
+            state.isRunning = true;
+            const pill = document.getElementById('status-pill');
+            pill.textContent = state.isFreeMode ? '∞ Cronometro attivo...' : '🟢 Esercizio in corso...';
+            pill.className = 'px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300';
+
+            state.timerInterval = setInterval(() => {
+                if (state.isFreeMode) {
+                    state.elapsedFreeSeconds++;
+                    updateTimerUI();
+                    updateStatsUI();
+                } else {
+                    state.timeLeft--;
+                    updateTimerUI();
+                    updateStatsUI();
+                    if (state.timeLeft <= 0) {
+                        finishSession();
+                    }
+                }
+            }, 1000);
+        }
+
+        function updateTimerUI() {
+            const ring = document.getElementById('timer-ring');
+            const linearBar = document.getElementById('timer-linear-bar');
+            const display = document.getElementById('timer-display');
+
+            if (state.isFreeMode) {
+                const mins = Math.floor(state.elapsedFreeSeconds / 60);
+                const secs = state.elapsedFreeSeconds % 60;
+                display.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+                ring.style.strokeDashoffset = 0;
+                ring.setAttribute('stroke', '#8b5cf6');
+                linearBar.style.width = '100%';
+                linearBar.className = 'h-full rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-pink-500 transition-all duration-300';
+                return;
+            }
+
+            const mins = Math.floor(state.timeLeft / 60);
+            const secs = state.timeLeft % 60;
+            display.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+            const ratio = Math.max(0, state.timeLeft / state.selectedDuration);
+            const circumference = 157.08;
+            ring.style.strokeDashoffset = circumference * (1 - ratio);
+            linearBar.style.width = `${ratio * 100}%`;
+
+            if (state.timeLeft <= 15) {
+                ring.setAttribute('stroke', '#f43f5e');
+                linearBar.className = 'h-full rounded-full bg-gradient-to-r from-rose-500 to-red-500 transition-all duration-300 animate-pulse';
+            } else if (state.timeLeft <= 45) {
+                ring.setAttribute('stroke', '#f59e0b');
+                linearBar.className = 'h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500 transition-all duration-300';
+            } else {
+                ring.setAttribute('stroke', '#06b6d4');
+                linearBar.className = 'h-full rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-pink-500 transition-all duration-300';
+            }
+        }
+
+        function getActiveElapsedSeconds() {
+            if (state.isFreeMode) return Math.max(1, state.elapsedFreeSeconds);
+            return Math.max(1, state.selectedDuration - state.timeLeft);
+        }
+
+        function updateStatsUI() {
+            const elapsedSec = getActiveElapsedSeconds();
+            const elapsedMin = elapsedSec / 60;
+
+            const wpm = (state.isRunning || state.isFinished) ? Math.round((state.correctChars / 5) / elapsedMin) : 0;
+            const cpm = (state.isRunning || state.isFinished) ? Math.round(state.correctChars / elapsedMin) : 0;
+            const accuracy = state.totalKeystrokes > 0 ? Math.round((state.correctChars / state.totalKeystrokes) * 100) : 100;
+
+            document.getElementById('stat-wpm').textContent = wpm;
+            document.getElementById('stat-cpm').textContent = cpm;
+            document.getElementById('stat-accuracy').textContent = `${accuracy}%`;
+            document.getElementById('stat-errors').textContent = state.errorCount;
+            document.getElementById('stat-streak').textContent = `${state.currentStreak} 🔥`;
+            document.getElementById('stat-max-streak').textContent = state.maxStreak;
+            document.getElementById('stat-points').textContent = state.bonusPoints;
+            document.getElementById('stat-phrases').textContent = state.completedItems;
+        }
+
+        /**
+         * FINE SESSIONE, PREMI BONUS, STORICO & REPORT
+         */
+        function finishSessionEarly(e) {
+            if (e) e.stopPropagation();
+            if (state.totalKeystrokes === 0) {
+                showToast('⚠️ Digita almeno qualche parola prima di generare il report!', 'from-amber-500 to-orange-500');
+                return;
+            }
+            finishSession();
+        }
+
+        function finishSession() {
+            clearInterval(state.timerInterval);
+            state.isRunning = false;
+            state.isFinished = true;
+            playSound('finish');
+            launchConfetti();
+
+            const elapsedSec = getActiveElapsedSeconds();
+            const elapsedMin = elapsedSec / 60;
+            const finalWpm = Math.round((state.correctChars / 5) / elapsedMin);
+            const finalCpm = Math.round(state.correctChars / elapsedMin);
+            const finalAccuracy = state.totalKeystrokes > 0 ? Math.round((state.correctChars / state.totalKeystrokes) * 100) : 0;
+
+            // Calcolo Premi Bonus
+            const badges = [];
+            if (!state.isFreeMode && state.selectedDuration >= 180 && state.correctChars >= 50) {
+                badges.push({ icon: '🏃‍♂️', title: 'Maratoneta (3+ Min)', desc: 'Completata una sessione lunga con costanza!', pts: 250 });
+            }
+            if (finalWpm >= 45) {
+                badges.push({ icon: '⚡', title: 'Fulmine della Tastiera', desc: `Velocità superba di ${finalWpm} WPM!`, pts: 300 });
+            } else if (finalWpm >= 28) {
+                badges.push({ icon: '🚀', title: 'Ritmo Sostenuto', desc: `Ottima fluidità (${finalWpm} WPM)!`, pts: 150 });
+            }
+            if (finalAccuracy >= 97 && state.totalKeystrokes >= 30) {
+                badges.push({ icon: '🎯', title: 'Precisione Chirurgica', desc: `Accuratezza straordinaria del ${finalAccuracy}%!`, pts: 250 });
+            } else if (finalAccuracy >= 90 && state.totalKeystrokes >= 25) {
+                badges.push({ icon: '✨', title: 'Mano Ferma', desc: `Ottimo controllo (${finalAccuracy}% precisione)!`, pts: 120 });
+            }
+            if (state.maxStreak >= 50) {
+                badges.push({ icon: '🔥', title: 'Combo Master', desc: `Serie di ${state.maxStreak} tasti consecutivi senza errori!`, pts: 200 });
+            }
+            if (state.category === 'word_list' && state.completedItems >= 3) {
+                badges.push({ icon: '⭐', title: 'Mago del Vocabolario', desc: 'Allenamento completato sulla tua lista personale!', pts: 180 });
+            }
+            if (state.category === 'custom_text' && state.correctChars >= 40) {
+                badges.push({ icon: '📋', title: 'Lettore Veloce', desc: 'Completato un testo personalizzato!', pts: 180 });
+            }
+            if (badges.length === 0) {
+                badges.push({ icon: '🌟', title: 'Ottimo Allenamento', desc: 'Continua così per sbloccare trofei speciali!', pts: 50 });
+            }
+
+            state.earnedBadges = badges;
+            const badgeSum = badges.reduce((s, b) => s + b.pts, 0);
+            const totalScore = state.bonusPoints + badgeSum + (finalWpm * 10);
+            const gradeComment = getGradeComment(finalWpm, finalAccuracy);
+
+            state.finalMetrics = {
+                wpm: finalWpm,
+                cpm: finalCpm,
+                accuracy: finalAccuracy,
+                elapsedSec: elapsedSec,
+                totalScore: totalScore,
+                gradeComment: gradeComment
+            };
+
+            saveSessionToHistory();
+
+            // Popola Modale Risultati
+            document.getElementById('final-wpm').textContent = `${finalWpm} WPM`;
+            document.getElementById('final-accuracy').textContent = `${finalAccuracy}%`;
+            document.getElementById('final-streak').textContent = `${state.maxStreak}x`;
+            document.getElementById('final-score').textContent = totalScore;
+            document.getElementById('result-grade-comment').textContent = gradeComment;
+
+            document.getElementById('badges-container').innerHTML = badges.map(b => `
+                <div class="flex items-center gap-2.5 bg-slate-50 border border-amber-200 rounded-2xl p-2.5">
+                    <div class="text-2xl bg-white w-10 h-10 rounded-xl flex items-center justify-center shadow-sm shrink-0">${b.icon}</div>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center justify-between gap-1">
+                            <span class="font-display font-bold text-xs sm:text-sm text-slate-800 truncate">${b.title}</span>
+                            <span class="text-xs font-bold text-emerald-600 shrink-0">+${b.pts} XP</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 leading-tight mt-0.5">${b.desc}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('results-modal').classList.remove('hidden');
+        }
+
+        function getGradeComment(wpm, accuracy) {
+            if (wpm >= 40 && accuracy >= 95) return "Valutazione: 10 / 10 (Eccellente - Velocità e precisione da campione!)";
+            if (wpm >= 30 && accuracy >= 90) return "Valutazione: 9 / 10 (Ottimo - Ottima padronanza della tastiera!)";
+            if (wpm >= 20 && accuracy >= 85) return "Valutazione: 8 / 10 (Buono - Buon ritmo e buona correttezza!)";
+            if (wpm >= 12 && accuracy >= 75) return "Valutazione: 7 / 10 (Discreto - Continua ad esercitarti!)";
+            return "Valutazione: 6 / 10 (Sufficiente - Usa la tastiera guida per migliorare!)";
+        }
+
+        /**
+         * STORICO SESSIONI IN LOCALSTORAGE
+         */
+        function saveSessionToHistory() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEYS.HISTORY);
+                const list = raw ? JSON.parse(raw) : [];
+                const now = new Date();
+                list.unshift({
+                    date: now.toLocaleDateString('it-IT') + ' ' + now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
+                    category: getCategoryLabel(state.category),
+                    wpm: state.finalMetrics.wpm,
+                    accuracy: state.finalMetrics.accuracy,
+                    score: state.finalMetrics.totalScore
+                });
+                localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(list.slice(0, 15)));
+            } catch (e) {}
+        }
+
+        function openHistoryModal() {
+            const container = document.getElementById('history-list-container');
+            try {
+                const raw = localStorage.getItem(STORAGE_KEYS.HISTORY);
+                const list = raw ? JSON.parse(raw) : [];
+                if (list.length === 0) {
+                    container.innerHTML = `<p class="text-center text-slate-400 py-6">Nessuna sessione registrata finora. Completa un esercizio per vedere i tuoi progressi!</p>`;
+                } else {
+                    container.innerHTML = list.map((item, i) => `
+                        <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2.5">
+                            <div>
+                                <div class="font-bold text-slate-800">${item.category}</div>
+                                <div class="text-xs text-slate-400">${item.date}</div>
+                            </div>
+                            <div class="flex items-center gap-3 text-right">
+                                <span class="px-2 py-0.5 rounded-lg bg-violet-100 text-violet-700 font-bold text-xs">${item.wpm} WPM</span>
+                                <span class="px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-700 font-bold text-xs">${item.accuracy}%</span>
+                                <span class="font-display font-bold text-amber-600 text-sm">${item.score} XP</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {}
+            document.getElementById('history-modal').classList.remove('hidden');
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('history-modal').classList.add('hidden');
+        }
+
+        function clearHistory() {
+            localStorage.removeItem(STORAGE_KEYS.HISTORY);
+            openHistoryModal();
+        }
+
+        /**
+         * DOWNLOAD REPORT CERTIFICATO (HTML STAMPABILE E TXT)
+         */
+        function downloadReport() {
+            const studentName = document.getElementById('modal-student-name').value.trim() || "Studente Terza Media";
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const timeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+            const m = state.finalMetrics || { wpm: 0, cpm: 0, accuracy: 100, elapsedSec: 0, totalScore: 0, gradeComment: "" };
+
+            const durationLabel = state.isFreeMode
+                ? `Cronometro Libero (${Math.floor(m.elapsedSec / 60)}m ${m.elapsedSec % 60}s)`
+                : `${Math.floor(state.selectedDuration / 60)}m ${state.selectedDuration % 60}s`;
+
+            const badgesHtml = state.earnedBadges.map(b => `
+                <li style="margin-bottom:8px; padding:10px 14px; background:#f0fdf4; border-left:4px solid #10b981; border-radius:8px;">
+                    <strong>${b.icon} ${b.title}</strong> (+${b.pts} XP) — <span style="color:#475569;">${b.desc}</span>
+                </li>
+            `).join('');
+
+            const reportHtml = `<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Report Digitazione Veloce - ${escapeHtml(studentName)}</title>
+<style>
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f9ff; color: #1e293b; padding: 28px; }
+    .card { max-width: 740px; margin: 0 auto; background: #ffffff; border-radius: 20px; padding: 32px; box-shadow: 0 12px 30px rgba(14, 165, 233, 0.12); border-top: 8px solid #06b6d4; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 22px; }
+    .title { font-size: 24px; font-weight: 800; color: #0f172a; margin: 0; }
+    .subtitle { font-size: 13px; color: #64748b; margin-top: 4px; }
+    .pill { background: #e0f2fe; color: #0369a1; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 12px; }
+    .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f8fafc; padding: 16px; border-radius: 14px; margin-bottom: 22px; font-size: 14px; border: 1px solid #e2e8f0; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 22px; }
+    .box { background: linear-gradient(135deg, #06b6d4, #8b5cf6); color: white; padding: 16px; border-radius: 14px; text-align: center; }
+    .box-val { font-size: 24px; font-weight: 800; margin-top: 4px; }
+    .box-lbl { font-size: 11px; text-transform: uppercase; opacity: 0.92; }
+    .grade { background: #fefce8; border: 2px solid #facc15; color: #854d0e; padding: 14px; border-radius: 14px; font-weight: 700; text-align: center; margin-bottom: 20px; font-size: 16px; }
+    .footer { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 28px; border-top: 1px solid #e2e8f0; padding-top: 14px; }
+    @media print { body { background: white; padding: 0; } .card { box-shadow: none; } }
+</style>
+</head>
+<body>
+    <div class="card">
+        <div class="header">
+            <div>
+                <h1 class="title">⌨️ REPORT DAILY ROUTINE TYPING PRO</h1>
+                <div class="subtitle">Piattaforma Digitazione Veloce in Inglese • Scuola Secondaria di I Grado (Terza Media)</div>
+            </div>
+            <span class="pill">SCHEDA VALUTAZIONE</span>
+        </div>
+
+        <div class="meta">
+            <div><strong>👤 Studente:</strong> ${escapeHtml(studentName)}</div>
+            <div><strong>📅 Data e Ora:</strong> ${dateStr} alle ${timeStr}</div>
+            <div><strong>📚 Tipologia Esercizio:</strong> ${getCategoryLabel(state.category)}</div>
+            <div><strong>🎯 Livello / Durata:</strong> ${getDifficultyLabel(state.difficulty)} • ${durationLabel}</div>
+        </div>
+
+        <div class="grid">
+            <div class="box">
+                <div class="box-lbl">Velocità</div>
+                <div class="box-val">${m.wpm} WPM</div>
+            </div>
+            <div class="box">
+                <div class="box-lbl">Precisione</div>
+                <div class="box-val">${m.accuracy}%</div>
+            </div>
+            <div class="box">
+                <div class="box-lbl">Max Combo</div>
+                <div class="box-val">${state.maxStreak}</div>
+            </div>
+            <div class="box">
+                <div class="box-lbl">Punteggio</div>
+                <div class="box-val">${m.totalScore} XP</div>
+            </div>
+        </div>
+
+        <div class="grade">${escapeHtml(m.gradeComment)}</div>
+
+        <p style="font-size:14px; color:#334155;">
+            <strong>Dettaglio Tecnico:</strong> ${state.correctChars} caratteri corretti su ${state.totalKeystrokes} battute totali (${state.errorCount} errori) • Ritmo medio: ${m.cpm} caratteri/min • Elementi completati: ${state.completedItems}.
+        </p>
+
+        <h3 style="font-size:16px; color:#0f172a; margin-top:20px;">🎖️ Premi Bonus Conquistati:</h3>
+        <ul style="list-style:none; padding:0; font-size:14px;">
+            ${badgesHtml}
+        </ul>
+
+        <div class="footer">
+            Report generato da Daily Routine Typing Pro • Firma Docente: ___________________________
+        </div>
+    </div>
+</body>
+</html>`;
+
+            const blob = new Blob([reportHtml], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const safeName = studentName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            a.href = url;
+            a.download = `Report_TypingPro_${safeName}_${dateStr.replace(/\//g, '-')}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadTxtReport() {
+            const studentName = document.getElementById('modal-student-name').value.trim() || "Studente Terza Media";
+            const now = new Date();
+            const m = state.finalMetrics || { wpm: 0, cpm: 0, accuracy: 100, totalScore: 0, gradeComment: "" };
+
+            const txt = [
+                "============================================================",
+                "   REPORT DAILY ROUTINE TYPING PRO - TERZA MEDIA",
+                "============================================================",
+                `Studente:            ${studentName}`,
+                `Data:                ${now.toLocaleDateString('it-IT')} ${now.toLocaleTimeString('it-IT')}`,
+                `Tipologia Testo:     ${getCategoryLabel(state.category)}`,
+                `Livello Difficolta:  ${getDifficultyLabel(state.difficulty)}`,
+                "------------------------------------------------------------",
+                `VELOCITA:            ${m.wpm} WPM (${m.cpm} caratteri/min)`,
+                `PRECISIONE:          ${m.accuracy}% (${state.errorCount} errori su ${state.totalKeystrokes} battute)`,
+                `SERIE COMBO MAX:     ${state.maxStreak}`,
+                `PUNTEGGIO TOTALE:    ${m.totalScore} XP`,
+                "------------------------------------------------------------",
+                `${m.gradeComment}`,
+                "------------------------------------------------------------",
+                "PREMI BONUS SBLOCCATI:",
+                ...state.earnedBadges.map(b => ` - ${b.title} (+${b.pts} XP): ${b.desc}`),
+                "============================================================"
+            ].join("\n");
+
+            const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Report_TypingPro_${studentName.replace(/[^a-z0-9]/gi, '_')}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        /**
+         * CONTROLLI RESET, TASTIERA VIRTUALE E UTILITÀ
+         */
+        function resetExercise(e) {
+            if (e) e.stopPropagation();
+            clearInterval(state.timerInterval);
+
+            state.timeLeft = state.selectedDuration;
+            state.elapsedFreeSeconds = 0;
+            state.isRunning = false;
+            state.isFinished = false;
+            state.totalKeystrokes = 0;
+            state.correctChars = 0;
+            state.errorCount = 0;
+            state.currentStreak = 0;
+            state.maxStreak = 0;
+            state.completedItems = 0;
+            state.bonusPoints = 0;
+            state.earnedBadges = [];
+
+            const pill = document.getElementById('status-pill');
+            pill.textContent = '✨ Inizia a digitare per partire!';
+            pill.className = 'px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300';
+
+            updateTimerUI();
+            updateStatsUI();
+            loadNextPrompt();
+            focusTypingInput();
+        }
+
+        function skipPrompt(e) {
+            if (e) e.stopPropagation();
+            if (state.isFinished) return;
+            loadNextPrompt();
+            focusTypingInput();
+        }
+
+        function closeModalAndRestart() {
+            document.getElementById('results-modal').classList.add('hidden');
+            resetExercise();
+        }
+
+        function focusTypingInput() {
+            const input = document.getElementById('hidden-typing-input');
+            if (input && !state.isFinished) input.focus();
+        }
+
+        function toggleSound() {
+            state.soundEnabled = !state.soundEnabled;
+            document.getElementById('sound-icon').textContent = state.soundEnabled ? '🔊' : '🔇';
+            document.getElementById('sound-label').textContent = state.soundEnabled ? 'Suoni: ON' : 'Suoni: OFF';
+            focusTypingInput();
+        }
+
+        function toggleVirtualKeyboard() {
+            state.keyboardVisible = !state.keyboardVisible;
+            const kb = document.getElementById('virtual-keyboard-section');
+            const btn = document.getElementById('toggle-keyboard-btn');
+            kb.classList.toggle('hidden', !state.keyboardVisible);
+            btn.innerHTML = state.keyboardVisible
+                ? '<span>🎹</span><span class="hidden md:inline">Tastiera: ON</span>'
+                : '<span>🎹</span><span class="hidden md:inline">Tastiera: OFF</span>';
+            focusTypingInput();
+        }
+
+        function highlightNextVirtualKey() {
+            document.querySelectorAll('.v-key').forEach(k => k.classList.remove('active-target'));
+            if (!state.currentPromptObj) return;
+
+            const nextChar = state.currentPromptObj.en[state.charIndex];
+            if (!nextChar) return;
+
+            const lower = nextChar.toLowerCase();
+            const isUpper = nextChar !== lower && /[A-Z]/.test(nextChar);
+
+            const keyEl = document.querySelector(`.v-key[data-key="${CSS.escape(lower)}"]`);
+            if (keyEl) keyEl.classList.add('active-target');
+
+            if (isUpper) {
+                const shiftEl = document.querySelector('.v-key[data-key="shift"]');
+                if (shiftEl) shiftEl.classList.add('active-target');
+            }
+        }
+
+        function handleKeyDownVisual(e) {
+            const el = document.querySelector(`.v-key[data-key="${CSS.escape(e.key.toLowerCase())}"]`);
+            if (el) el.classList.add('pressed');
+        }
+
+        function handleKeyUpVisual(e) {
+            const el = document.querySelector(`.v-key[data-key="${CSS.escape(e.key.toLowerCase())}"]`);
+            if (el) el.classList.remove('pressed');
+        }
+
+        function showToast(message, gradientClasses) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `bg-gradient-to-r ${gradientClasses} text-white font-display font-bold text-xs sm:text-sm px-4 py-2.5 rounded-2xl shadow-lg border border-white/40 animate-pop`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-8px)';
+                toast.style.transition = 'all 0.25s ease';
+                setTimeout(() => toast.remove(), 250);
+            }, 2200);
+        }
+
+        function getCategoryLabel(cat) {
+            const map = {
+                routine: 'Daily Routine',
+                dialogues: 'Dialoghi & Chat',
+                diary: 'Email & Diario',
+                twisters: 'Scioglilingua & Verbi',
+                custom_text: `Testo Incollato (${state.customTextTitle})`,
+                word_list: 'Lista Parole Personale'
+            };
+            return map[cat] || cat;
+        }
+
+        function getDifficultyLabel(diff) {
+            if (state.category === 'custom_text' || state.category === 'word_list') return 'Personalizzato';
+            return diff === 'easy' ? 'Principiante' : (diff === 'medium' ? 'Intermedio' : 'Esperto Pro');
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function launchConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const colors = ['#06b6d4', '#ec4899', '#facc15', '#10b981', '#8b5cf6', '#f97316'];
+            const pieces = Array.from({ length: 110 }, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                w: Math.random() * 10 + 6,
+                h: Math.random() * 6 + 4,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                vy: Math.random() * 3 + 2,
+                vx: Math.random() * 2 - 1,
+                angle: Math.random() * 360,
+                spin: Math.random() * 6 - 3
+            }));
+
+            let frames = 0;
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                pieces.forEach(p => {
+                    p.y += p.vy;
+                    p.x += p.vx;
+                    p.angle += p.spin;
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate((p.angle * Math.PI) / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                    ctx.restore();
+                });
+                frames++;
+                if (frames < 200) requestAnimationFrame(draw);
+                else ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+            draw();
+        }
+    </script>
+</body>
+</html>
