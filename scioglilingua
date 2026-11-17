@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Routine Typing Pro</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfeff 35%, #fdf4ff 70%, #fffbeb 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: #0f172a;
+        }
+
+        .font-display {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Glowing background shapes */
+        .bg-shape {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.55;
+        }
+
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-15px) scale(1.05); }
+        }
+        .animate-float {
+            animation: floatSlow 7s ease-in-out infinite;
+        }
+
+        .char-current {
+            background-color: #fef08a;
+            color: #1e293b;
+            border-bottom: 3px solid #eab308;
+            border-radius: 4px;
+            box-shadow: 0 0 12px rgba(234, 179, 8, 0.6);
+            animation: cursorPulse 1s infinite;
+        }
+
+        @keyframes cursorPulse {
+            0%, 49% { background-color: #fef08a; }
+            50%, 100% { background-color: #fde047; }
+        }
+
+        .char-correct {
+            color: #059669;
+            background-color: rgba(16, 185, 129, 0.12);
+            border-radius: 3px;
+        }
+
+        .char-incorrect {
+            color: #ffffff !important;
+            background-color: #e11d48 !important;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(225, 29, 72, 0.6);
+        }
+
+        .v-key {
+            transition: all 0.08s ease;
+            box-shadow: 0 3px 0 #cbd5e1;
+        }
+        .v-key.active-target {
+            background: linear-gradient(135deg, #fde047, #22d3ee) !important;
+            color: #0f172a !important;
+            border-color: #ca8a04 !important;
+            transform: translateY(-2px) scale(1.06);
+            box-shadow: 0 0 18px rgba(34, 211, 238, 0.8), 0 3px 0 #a16207;
+            font-weight: 900;
+        }
+        .v-key.pressed {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #cbd5e1;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #38bdf8;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0ea5e9;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-cyan-200 selection:text-slate-900" onclick="focusTypingInput()">
+
+    <!-- Glowing Background Orbs (Bright Pastel) -->
+    <div class="bg-shape w-[420px] h-[420px] bg-emerald-300 top-[-10%] left-[-5%] animate-float"></div>
+    <div class="bg-shape w-[420px] h-[420px] bg-cyan-300 bottom-[-10%] right-[-5%] animate-float" style="animation-delay: 2s;"></div>
+    <div class="bg-shape w-[350px] h-[350px] bg-fuchsia-300 top-[40%] left-[60%] animate-float" style="animation-delay: 4s;"></div>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+    <!-- MAIN CONTAINER -->
+    <div class="relative z-10 max-w-6xl mx-auto px-4 py-4 sm:py-6 flex flex-col min-h-screen">
+
+        <!-- HEADER -->
+        <header class="bg-white/90 backdrop-blur-xl border border-cyan-200 rounded-3xl p-4 sm:p-5 shadow-xl shadow-cyan-100 mb-5 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-400 via-fuchsia-400 to-yellow-300 flex items-center justify-center text-slate-900 text-2xl shadow-lg shadow-cyan-200 animate-pulse">
+                    ⌨️
+                </div>
+                <div>
+                    <h1 class="font-display font-black text-xl sm:text-2xl bg-gradient-to-r from-cyan-600 via-fuchsia-600 to-amber-600 bg-clip-text text-transparent">
+                        Daily Routine Typing Pro
+                    </h1>
+                    <p class="text-xs sm:text-sm text-slate-600 font-medium">
+                        Digitazione Veloce • <span class="text-cyan-600 font-bold">Terza Media</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- STUDENT INPUT FIELDS -->
+            <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-end" onclick="event.stopPropagation()">
+                <div class="flex items-center bg-slate-50 border border-slate-200 rounded-2xl px-3 py-1.5 shadow-inner flex-1 sm:flex-none">
+                    <span class="text-xs text-slate-500 font-semibold mr-2">👤 Alunno:</span>
+                    <input type="text" id="user-fullname" placeholder="Nome e Cognome" 
+                        class="bg-transparent text-sm font-bold text-slate-800 focus:outline-none w-36 sm:w-44 placeholder:text-slate-400 placeholder:font-normal"
+                        oninput="updateStudentData()">
+                </div>
+                <div class="flex items-center bg-slate-50 border border-slate-200 rounded-2xl px-3 py-1.5 shadow-inner">
+                    <span class="text-xs text-slate-500 font-semibold mr-2">🏫 Classe:</span>
+                    <input type="text" id="user-class" placeholder="es. 3ª A" 
+                        class="bg-transparent text-sm font-bold text-slate-800 focus:outline-none w-20 sm:w-24 placeholder:text-slate-400 placeholder:font-normal"
+                        list="class-suggestions" oninput="updateStudentData()">
+                    <datalist id="class-suggestions">
+                        <option value="3ª A"></option>
+                        <option value="3ª B"></option>
+                        <option value="3ª C"></option>
+                        <option value="3ª D"></option>
+                        <option value="3ª E"></option>
+                        <option value="3ª F"></option>
+                    </datalist>
+                </div>
+                <button onclick="toggleAudio()" id="audio-toggle-btn" 
+                    class="bg-fuchsia-100 hover:bg-fuchsia-200 text-fuchsia-700 border border-fuchsia-300 p-2 rounded-2xl transition font-bold text-xs flex items-center gap-1 shadow-sm cursor-pointer"
+                    title="Attiva/Disattiva Suoni">
+                    🔊 <span class="hidden sm:inline">Audio</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- CONFIGURATION PANEL -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5" onclick="event.stopPropagation()">
+            
+            <!-- Category Selector -->
+            <div class="lg:col-span-2 bg-white/90 backdrop-blur-xl border border-cyan-200 rounded-3xl p-4 sm:p-5 shadow-xl shadow-cyan-100 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="font-display font-bold text-base sm:text-lg text-slate-800 flex items-center gap-2">
+                            <span>📚</span> Tipologia di Esercizio
+                        </h2>
+                        <span id="active-category-badge" class="text-xs font-bold bg-cyan-100 text-cyan-800 px-3 py-1 rounded-xl border border-cyan-300">
+                            Daily Routine
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
+                        <button onclick="setCategory('routine')" id="cat-routine" 
+                            class="cat-btn text-left p-3 rounded-2xl border-2 border-cyan-400 bg-cyan-50 font-semibold text-xs sm:text-sm text-slate-800 transition shadow-sm hover:border-cyan-500 cursor-pointer">
+                            🌅 Daily Routine
+                        </button>
+                        <button onclick="setCategory('twisters')" id="cat-twisters" 
+                            class="cat-btn text-left p-3 rounded-2xl border-2 border-slate-200 bg-slate-50 font-semibold text-xs sm:text-sm text-slate-600 transition shadow-sm hover:border-cyan-400 cursor-pointer">
+                            🌀 Scioglilingua
+                        </button>
+                        <button onclick="setCategory('chat')" id="cat-chat" 
+                            class="cat-btn text-left p-3 rounded-2xl border-2 border-slate-200 bg-slate-50 font-semibold text-xs sm:text-sm text-slate-600 transition shadow-sm hover:border-cyan-400 cursor-pointer">
+                            💬 Chat & Dialoghi
+                        </button>
+                        <button onclick="setCategory('email')" id="cat-email" 
+                            class="cat-btn text-left p-3 rounded-2xl border-2 border-slate-200 bg-slate-50 font-semibold text-xs sm:text-sm text-slate-600 transition shadow-sm hover:border-cyan-400 cursor-pointer">
+                            ✉️ Email & Diario
+                        </button>
+                        <button onclick="setCategory('custom')" id="cat-custom" 
+                            class="cat-btn text-left p-3 rounded-2xl border-2 border-slate-200 bg-slate-50 font-semibold text-xs sm:text-sm text-slate-600 transition shadow-sm hover:border-cyan-400 cursor-pointer">
+                            ✏️ Incolla Testo
+                        </button>
+                        <button onclick="setCategory('vocab')" id="cat-vocab" 
+                            class="cat-btn text-left p-3 rounded-2xl border-2 border-slate-200 bg-slate-50 font-semibold text-xs sm:text-sm text-slate-600 transition shadow-sm hover:border-cyan-400 cursor-pointer">
+                            📝 Mie Parole
+                        </button>
+                    </div>
+
+                    <!-- Custom / Vocab Panel -->
+                    <div id="dynamic-input-panel" class="hidden mb-3 bg-slate-50 border border-slate-200 rounded-2xl p-3.5 shadow-inner">
+                        <div id="custom-text-box" class="hidden">
+                            <h3 class="text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                                <span>Inserisci o incolla il tuo testo personalizzato (in inglese):</span>
+                                <span class="text-[10px] text-cyan-600 font-normal">Ideale per verifiche o brani</span>
+                            </h3>
+                            <input type="text" id="custom-title-input" placeholder="Titolo del brano (es. My Summer Holiday)" class="w-full mb-2 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-cyan-400">
+                            <textarea id="custom-text-input" rows="2" placeholder="Scrivi o incolla qui il testo da digitare..." class="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:border-cyan-400 resize-none"></textarea>
+                            <div class="flex justify-end mt-1">
+                                <button onclick="loadCustomText()" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-xs px-4 py-1.5 rounded-xl shadow-md transition cursor-pointer">
+                                    Carica Brano ✨
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="vocab-list-box" class="hidden">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <h3 class="text-xs font-bold text-slate-700">La Tua Lista di Parole Personale:</h3>
+                                <span id="vocab-counter" class="text-[11px] font-bold text-cyan-600">0 parole</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
+                                <input type="text" id="vocab-word-input" placeholder="Parola in Inglese" class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-cyan-400">
+                                <input type="text" id="vocab-trans-input" placeholder="Traduzione Italiana" class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-cyan-400">
+                                <button onclick="addVocabWord()" class="bg-fuchsia-500 hover:bg-fuchsia-600 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow-md transition cursor-pointer">
+                                    + Aggiungi
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px] text-slate-500">
+                                <span>Salva le parole per le tue ripetizioni.</span>
+                                <button onclick="clearVocabList()" class="text-rose-500 hover:underline font-bold cursor-pointer">Svuota lista</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Difficulty Selector -->
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100">
+                    <span class="text-xs font-bold text-slate-700">⚙️ Livello:</span>
+                    <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-2xl border border-slate-200">
+                        <button onclick="setDifficulty('beginner')" id="diff-beginner" 
+                            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-cyan-400 text-slate-900 shadow-sm transition cursor-pointer">
+                            🌱 Principiante
+                        </button>
+                        <button onclick="setDifficulty('intermediate')" id="diff-intermediate" 
+                            class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer">
+                            🌿 Intermedio
+                        </button>
+                        <button onclick="setDifficulty('expert')" id="diff-expert" 
+                            class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer">
+                            🌳 Esperto Pro
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timer & Quick Actions Panel -->
+            <div class="bg-white/90 backdrop-blur-xl border border-cyan-200 rounded-3xl p-4 sm:p-5 shadow-xl shadow-cyan-100 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <h2 class="font-display font-bold text-base sm:text-lg text-slate-800 flex items-center gap-2">
+                            <span>⏱️</span> Timer & Durata
+                        </h2>
+                        <div class="flex items-center gap-1">
+                            <input type="checkbox" id="auto-timer-toggle" checked onchange="toggleAutoTimer()" class="rounded text-cyan-500 focus:ring-cyan-400 w-4 h-4 cursor-pointer">
+                            <label for="auto-timer-toggle" class="text-[11px] font-semibold text-slate-600 cursor-pointer">Adatta timer</label>
+                        </div>
+                    </div>
+
+                    <!-- Timer Preset Buttons -->
+                    <div class="grid grid-cols-4 gap-1.5 mb-3">
+                        <button onclick="setTimerDuration(180)" id="preset-180" class="timer-preset py-1.5 px-2 rounded-xl border border-cyan-400 bg-cyan-50 text-cyan-700 font-bold text-xs transition cursor-pointer">3:00</button>
+                        <button onclick="setTimerDuration(120)" id="preset-120" class="timer-preset py-1.5 px-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 font-bold text-xs transition cursor-pointer">2:00</button>
+                        <button onclick="setTimerDuration(90)" id="preset-90" class="timer-preset py-1.5 px-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 font-bold text-xs transition cursor-pointer">1:30</button>
+                        <button onclick="setTimerDuration(60)" id="preset-60" class="timer-preset py-1.5 px-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 font-bold text-xs transition cursor-pointer">1:00</button>
+                    </div>
+
+                    <!-- Fine Adjustment -->
+                    <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-2xl p-2.5 mb-3">
+                        <span class="text-xs font-semibold text-slate-600">Regola al secondo:</span>
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="adjustTimer(-30)" class="w-7 h-7 bg-white border border-slate-200 rounded-lg text-xs font-bold text-cyan-700 hover:bg-slate-100 transition cursor-pointer">-30s</button>
+                            <span id="timer-display-setting" class="font-display font-black text-sm text-slate-800 w-12 text-center">03:00</span>
+                            <button onclick="adjustTimer(30)" class="w-7 h-7 bg-white border border-slate-200 rounded-lg text-xs font-bold text-cyan-700 hover:bg-slate-100 transition cursor-pointer">+30s</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Session Action Buttons -->
+                <div class="grid grid-cols-2 gap-2 pt-2">
+                    <button onclick="resetSession()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 px-3 rounded-2xl transition border border-slate-200 shadow-sm flex items-center justify-center gap-1 cursor-pointer">
+                        🔄 Ricomincia
+                    </button>
+                    <button onclick="finishSessionEarly(event)" class="bg-gradient-to-r from-cyan-400 to-fuchsia-400 hover:from-cyan-500 hover:to-fuchsia-500 text-slate-950 font-bold text-xs py-2.5 px-3 rounded-2xl transition shadow-md flex items-center justify-center gap-1 cursor-pointer">
+                        🏁 Concludi & Report
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- TYPING ARENA -->
+        <main class="mt-1 relative flex-1 flex flex-col">
+            <div id="typing-card" onclick="focusTypingInput()" 
+                class="bg-white/95 backdrop-blur-xl border-2 border-cyan-300 hover:border-cyan-400 rounded-3xl p-5 sm:p-7 shadow-xl shadow-cyan-100 transition cursor-text relative overflow-hidden flex-1 flex flex-col justify-between">
+                
+                <!-- Card Header Bar -->
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3 pb-3 border-b border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <span id="item-counter" class="text-xs font-bold text-cyan-800 bg-cyan-100 px-3 py-1 rounded-xl border border-cyan-300">
+                            Frase 1 di 5
+                        </span>
+                        <span id="item-translation" class="text-xs text-slate-500 italic hidden sm:inline">
+                            <!-- Traduzione in italiano -->
+                        </span>
+                    </div>
+
+                    <!-- Realtime Statistics -->
+                    <div class="flex items-center gap-3 text-xs font-bold">
+                        <div class="flex items-center gap-1 text-cyan-700 bg-cyan-50 px-2.5 py-1 rounded-xl border border-cyan-200">
+                            <span>⚡</span> <span id="stat-wpm">0</span> WPM
+                        </div>
+                        <div class="flex items-center gap-1 text-pink-700 bg-pink-50 px-2.5 py-1 rounded-xl border border-pink-200">
+                            <span>🎯</span> <span id="stat-acc">100</span>%
+                        </div>
+                        <div class="flex items-center gap-1 text-amber-700 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200">
+                            <span>⏱️</span> <span id="timer-countdown">03:00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visual Progress Bar -->
+                <div class="w-full bg-slate-100 h-2 rounded-full mb-4 overflow-hidden border border-slate-200">
+                    <div id="timer-bar-fill" class="bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-amber-400 h-full w-full transition-all duration-300"></div>
+                </div>
+
+                <!-- TEXT DISPLAY AREA (PERMISSIVE ERROR HANDLING) -->
+                <div class="my-auto py-4">
+                    <div class="text-center mb-3">
+                        <span id="current-title-label" class="text-xs font-extrabold uppercase tracking-wider text-cyan-800 bg-cyan-100 px-3 py-1 rounded-full border border-cyan-300">
+                            Daily Routine • Morning Habits
+                        </span>
+                    </div>
+
+                    <div id="text-display-area" class="font-mono text-lg sm:text-2xl md:text-3xl leading-relaxed text-center select-none tracking-wide px-2 min-h-[110px] flex items-center justify-center flex-wrap">
+                        <!-- Caratteri iniettati via JS -->
+                    </div>
+                </div>
+
+                <!-- Invisible Input capturing key events -->
+                <input type="text" id="hidden-typing-input" class="absolute opacity-0 pointer-events-none" autocomplete="off" autocapitalize="off" spellcheck="false">
+
+                <!-- Hint & Streak Footer -->
+                <div class="text-center pt-3 border-t border-slate-100 mt-3 flex items-center justify-between text-xs text-slate-500">
+                    <span id="typing-hint">💡 Clicca sulla card per iniziare. Gli errori non bloccano la digitazione!</span>
+                    <span class="font-bold text-amber-600">Serie: <span id="current-streak">0</span> 🔥</span>
+                </div>
+            </div>
+
+            <!-- VIRTUAL ON-SCREEN KEYBOARD -->
+            <div class="mt-4 bg-white/90 backdrop-blur-xl border border-cyan-200 rounded-3xl p-3.5 sm:p-4 shadow-xl shadow-cyan-100" onclick="event.stopPropagation()">
+                <div class="text-center text-[11px] font-bold text-slate-600 mb-2 uppercase tracking-wider flex items-center justify-center gap-1.5">
+                    <span>⌨️ Tastiera Guida Virtuale</span>
+                    <span class="text-cyan-800 bg-cyan-100 px-2 py-0.5 rounded-lg border border-cyan-300">Illumina il prossimo tasto</span>
+                </div>
+                
+                <!-- Keyboard Layout -->
+                <div class="max-w-3xl mx-auto flex flex-col gap-1.5 select-none" id="virtual-keyboard">
+                    <!-- Row 1 -->
+                    <div class="flex justify-center gap-1">
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="`">`</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="1">1</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="2">2</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="3">3</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="4">4</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="5">5</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="6">6</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="7">7</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="8">8</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="9">9</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="0">0</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="-">-</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="=">=</div>
+                    </div>
+                    <!-- Row 2 -->
+                    <div class="flex justify-center gap-1">
+                        <div class="v-key w-8 sm:w-12 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="Tab">Tab</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="q">q</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="w">w</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="e">e</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="r">r</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="t">t</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="y">y</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="u">u</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="i">i</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="o">o</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="p">p</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="[">[</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="]">]</div>
+                    </div>
+                    <!-- Row 3 -->
+                    <div class="flex justify-center gap-1">
+                        <div class="v-key w-10 sm:w-14 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="CapsLock">Caps</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="a">a</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="s">s</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="d">d</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="f">f</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="g">g</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="h">h</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="j">j</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="k">k</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="l">l</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key=";">;</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="'">'</div>
+                    </div>
+                    <!-- Row 4 -->
+                    <div class="flex justify-center gap-1">
+                        <div class="v-key w-12 sm:w-18 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="Shift">Shift</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="z">z</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="x">x</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="c">c</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="v">v</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="b">b</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="n">n</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="m">m</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key=",">,</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key=".">.</div>
+                        <div class="v-key w-7 sm:w-10 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key="/">/</div>
+                    </div>
+                    <!-- Row 5 -->
+                    <div class="flex justify-center gap-1">
+                        <div class="v-key w-48 sm:w-72 h-7 sm:h-9 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-slate-700 cursor-pointer" data-key=" ">SPACE</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- RESULTS MODAL & DOWNLOAD REPORT -->
+        <div id="results-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white border-2 border-cyan-300 rounded-3xl max-w-xl w-full p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+                <div class="text-center mb-5">
+                    <div class="w-16 h-16 bg-gradient-to-tr from-cyan-400 via-fuchsia-400 to-yellow-300 rounded-3xl mx-auto flex items-center justify-center text-3xl shadow-lg shadow-cyan-200 mb-3 animate-bounce">
+                        🏆
+                    </div>
+                    <h2 class="font-display font-black text-2xl text-slate-800">Sessione Completata!</h2>
+                    <p class="text-xs text-slate-500 mt-1" id="result-grade-comment">Valutazione in corso...</p>
+                </div>
+
+                <!-- Metrics Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+                    <div class="bg-cyan-50 border border-cyan-200 rounded-2xl p-3 text-center">
+                        <div class="text-xs text-cyan-700 font-bold mb-0.5">Velocità</div>
+                        <div id="final-wpm" class="font-display font-black text-xl text-slate-800">0 WPM</div>
+                    </div>
+                    <div class="bg-pink-50 border border-pink-200 rounded-2xl p-3 text-center">
+                        <div class="text-xs text-pink-700 font-bold mb-0.5">Precisione</div>
+                        <div id="final-accuracy" class="font-display font-black text-xl text-slate-800">0%</div>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3 text-center">
+                        <div class="text-xs text-amber-700 font-bold mb-0.5">Serie Max</div>
+                        <div id="final-streak" class="font-display font-black text-xl text-slate-800">0</div>
+                    </div>
+                    <div class="bg-fuchsia-50 border border-fuchsia-200 rounded-2xl p-3 text-center">
+                        <div class="text-xs text-fuchsia-700 font-bold mb-0.5">XP Totali</div>
+                        <div id="final-score" class="font-display font-black text-xl text-slate-800">0 XP</div>
+                    </div>
+                </div>
+
+                <!-- Unlocked Badges -->
+                <div class="mb-5">
+                    <h3 class="text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider flex items-center gap-1.5">
+                        <span>🌟</span> Premi Bonus Sbloccati (<span id="badges-count">0</span>)
+                    </h3>
+                    <div id="badges-container" class="space-y-2 max-h-40 overflow-y-auto pr-1">
+                        <!-- Loaded via JS -->
+                    </div>
+                </div>
+
+                <!-- Download Report Action Buttons -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-3 border-t border-slate-100">
+                    <button onclick="downloadReportHTML()" class="bg-gradient-to-r from-cyan-400 to-fuchsia-400 hover:from-cyan-500 hover:to-fuchsia-500 text-slate-950 font-bold text-xs py-3 px-4 rounded-2xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+                        📥 Scarica Report HTML (Certificato)
+                    </button>
+                    <button onclick="downloadReportTXT()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-bold text-xs py-3 px-4 rounded-2xl transition flex items-center justify-center gap-2 cursor-pointer">
+                        📄 Scarica Report (.TXT)
+                    </button>
+                </div>
+
+                <div class="mt-3 text-center">
+                    <button onclick="closeModalAndRestart()" class="text-xs text-cyan-600 hover:underline font-bold cursor-pointer">
+                        Continua ad allenarti con un'altra sessione ➔
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- DAILY GOALS & OBJECTIVES PANEL -->
+        <section class="mt-4 bg-white/90 backdrop-blur-xl border border-cyan-200 rounded-3xl p-4 sm:p-5 shadow-xl shadow-cyan-100" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="font-display font-bold text-sm sm:text-base text-slate-800 flex items-center gap-2">
+                    <span>🎯</span> Obiettivi e Missioni Giornaliere
+                </h3>
+                <span class="text-xs font-bold bg-amber-100 text-amber-800 px-3 py-1 rounded-xl border border-amber-300">
+                    Missioni Terza Media
+                </span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div id="goal-1" class="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-3 transition">
+                    <span class="text-2xl" id="goal-1-icon">⏳</span>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-xs font-bold text-slate-800" id="goal-1-title">Velocità 25 WPM</div>
+                        <div class="text-[11px] text-slate-500" id="goal-1-desc">Supera 25 WPM in una sessione</div>
+                    </div>
+                </div>
+                <div id="goal-2" class="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-3 transition">
+                    <span class="text-2xl" id="goal-2-icon">🎯</span>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-xs font-bold text-slate-800" id="goal-2-title">Precisione 90%</div>
+                        <div class="text-[11px] text-slate-500" id="goal-2-desc">Mantieni oltre il 90% di accuratezza</div>
+                    </div>
+                </div>
+                <div id="goal-3" class="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-3 transition">
+                    <span class="text-2xl" id="goal-3-icon">🏆</span>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-xs font-bold text-slate-800" id="goal-3-title">Maratoneta 2 Esercizi</div>
+                        <div class="text-[11px] text-slate-500" id="goal-3-desc">Completa almeno 2 frasi/brani</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TOAST NOTIFICATION -->
+        <div id="toast-notification" class="fixed bottom-5 right-5 bg-white text-slate-800 px-4 py-3 rounded-2xl shadow-xl z-50 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3 border border-cyan-300 pointer-events-none">
+            <span id="toast-icon" class="text-xl">✨</span>
+            <div>
+                <div id="toast-title" class="font-bold text-xs">Notifica</div>
+                <div id="toast-desc" class="text-[11px] text-slate-500">Messaggio di prova</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- APPLICATION SCRIPT -->
+    <script>
+        const textDatabases = {
+            routine: {
+                beginner: [
+                    { en: "I wake up at seven o'clock every morning.", it: "Mi sveglio alle sette ogni mattina." },
+                    { en: "She brushes her teeth and washes her face.", it: "Lei si lava i denti e la faccia." },
+                    { en: "We eat breakfast together in the kitchen.", it: "Facciamo colazione insieme in cucina." },
+                    { en: "He catches the school bus at half past seven.", it: "Prende lo scuolabus alle sette e mezza." },
+                    { en: "They finish lessons at two o'clock in the afternoon.", it: "Finiscono le lezioni alle due del pomeriggio." }
+                ],
+                intermediate: [
+                    { en: "Usually, I do my homework right after getting back home from school.", it: "Di solito, faccio i compiti subito dopo essere tornato a casa da scuola." },
+                    { en: "My brother always listens to music while helping with household chores.", it: "Mio fratello ascolta sempre la musica mentre aiuta con le faccende domestiche." },
+                    { en: "After dinner, we often watch an interesting documentary together.", it: "Dopo cena, spesso guardiamo insieme un documentario interessante." },
+                    { en: "Before going to sleep, I read a few pages of my favourite English book.", it: "Prima di andare a dormire, leggo qualche pagina del mio libro d'inglese preferito." }
+                ],
+                expert: [
+                    { en: "Balancing school commitments, extracurricular sports and relaxing hobbies requires excellent time management skills.", it: "Bilanciare impegni scolastici, sport extrascolastici e hobby rilassanti richiede ottime capacità di gestione del tempo." },
+                    { en: "During the exam year in middle school, establishing a consistent daily routine is essential for academic success and well-being.", it: "Durante l'anno d'esame in terza media, stabilire una routine giornaliera costante è essenziale per il successo scolastico e il benessere." }
+                ]
+            },
+            twisters: {
+                beginner: [
+                    { en: "She sells seashells on the seashore.", it: "Lei vende conchiglie sulla spiaggia (Scioglilingua in inglese)." },
+                    { en: "Peter Piper picked a peck of pickled peppers.", it: "Peter Piper ha raccolto un barattolo di peperoni sottaceto." },
+                    { en: "Tre tigri contro tre tigri a trentatré trentini.", it: "Scioglilingua classico italiano per l'agilità delle dita." }
+                ],
+                intermediate: [
+                    { en: "How much wood would a woodchuck chuck if a woodchuck could chuck wood?", it: "Quanto legno roderebbe una marmotta se potesse rodere legno?" },
+                    { en: "I scream, you scream, we all scream for ice cream!", it: "Io urlo, tu urli, tutti noi urliamo per il gelato!" },
+                    { en: "Sopra la panca la capra campa, sotto la panca la capra crepa.", it: "Scioglilingua italiano avanzato sulla pronuncia e velocità." }
+                ],
+                expert: [
+                    { en: "Padre piattola, manda a dire che i tredici trentini triturarono tre trote tra tetti traforati.", it: "Scioglilingua complesso per esperti della tastiera e coordinazione." },
+                    { en: "If two witches would watch two watches, which witch would watch which watch?", it: "Se due streghe guardassero due orologi, quale strega guarderebbe quale orologio?" }
+                ]
+            },
+            chat: {
+                beginner: [
+                    { en: "What time do you usually wake up?", it: "A che ora ti svegli di solito?" },
+                    { en: "I get up early because I love morning sports.", it: "Mi alzo presto perché amo lo sport mattutino." },
+                    { en: "Do you have lunch at the school canteen?", it: "Pranzi alla mensa scolastica?" },
+                    { en: "Yes, and the food is surprisingly delicious.", it: "Sì, e il cibo è sorprendentemente delizioso." }
+                ],
+                intermediate: [
+                    { en: "Hey! Are you free this afternoon to study English together?", it: "Ehi! Sei libero questo pomeriggio per studiare inglese insieme?" },
+                    { en: "Sure! Let's meet at four o'clock near the public library.", it: "Certo! Incontriamoci alle quattro vicino alla biblioteca pubblica." },
+                    { en: "Remember to bring your laptop and your exercise notebook.", it: "Ricordati di portare il computer portatile e il quaderno degli esercizi." }
+                ],
+                expert: [
+                    { en: "Could you please forward me the notes from yesterday's science lesson about ecosystems?", it: "Potresti per favore inoltrarmi gli appunti della lezione di scienze di ieri sugli ecosistemi?" },
+                    { en: "Of course! I have just uploaded them to our shared class folder on Google Drive.", it: "Certamente! Li ho appena caricati sulla nostra cartella condivisa della classe su Google Drive." }
+                ]
+            },
+            email: {
+                beginner: [
+                    { en: "Dear Marco, thank you for your friendly email.", it: "Caro Marco, grazie per la tua simpatica email." },
+                    { en: "I am writing to tell you about my daily routine.", it: "Ti scrivo per raccontarti la mia routine giornaliera." },
+                    { en: "Write back soon and tell me about yours.", it: "Rispondi presto e raccontami la tua." }
+                ],
+                intermediate: [
+                    { en: "Hi Sarah, I hope you are having a wonderful week so far!", it: "Ciao Sarah, spero tu stia passando una settimana fantastica finora!" },
+                    { en: "Next weekend our class is organizing a charity bake sale at school.", it: "Il prossimo fine settimana la nostra classe sta organizzando una vendita di dolci di beneficenza a scuola." },
+                    { en: "Let me know if you would like to join our team of volunteers.", it: "Fammi sapere se ti piacerebbe unirti al nostro team di volontari." }
+                ],
+                expert: [
+                    { en: "Dear Headmaster, we would like to propose a new recycling initiative for all classrooms.", it: "Gentile Preside, vorremmo proporre una nuova iniziativa di riciclo per tutte le classi." },
+                    { en: "Proper waste sorting is crucial for reducing our school's environmental footprint.", it: "Una corretta raccolta differenziata è fondamentale per ridurre l'impronta ecologica della nostra scuola." }
+                ]
+            },
+            verbs: {
+                beginner: [
+                    { en: "I eat, you drink, he plays, she sleeps.", it: "Io mangio, tu bevi, lui gioca, lei dorme." },
+                    { en: "We go to school by bike every morning.", it: "Andiamo a scuola in bicicletta ogni mattina." }
+                ],
+                intermediate: [
+                    { en: "Yesterday I went to the park and met my best friends.", it: "Ieri sono andato al parco e ho incontrato i miei migliori amici." },
+                    { en: "She has already finished reading her history textbook.", it: "Lei ha già finito di leggere il suo libro di testo di storia." }
+                ],
+                expert: [
+                    { en: "If I had more free time during the week, I would learn to play the acoustic guitar.", it: "Se avessi più tempo libero durante la settimana, imparerei a suonare la chitarra acustica." },
+                    { en: "Students who practice typing regularly achieve remarkable results in international certificates.", it: "Gli studenti che si allenano regolarmente alla digitazione ottengono risultati notevoli nei certificati internazionali." }
+                ]
+            }
+        };
+
+        let state = {
+            category: 'routine',
+            difficulty: 'beginner',
+            currentIndex: 0,
+            items: [],
+            currentText: "",
+            currentTranslation: "",
+            charIndex: 0,
+            errors: 0,
+            correctChars: 0,
+            totalKeystrokes: 0,
+            currentStreak: 0,
+            maxStreak: 0,
+            completedItems: 0,
+            bonusPoints: 0,
+            earnedBadges: [],
+            finalMetrics: null,
+            timerSeconds: 180,
+            timeRemaining: 180,
+            timerInterval: null,
+            isRunning: false,
+            isFinished: false,
+            autoTimer: true,
+            audioEnabled: true,
+            studentName: "",
+            studentClass: "",
+            customVocabList: JSON.parse(localStorage.getItem('typing_vocab_list') || '[]'),
+            customUserText: { title: "Custom Exercise", text: "Type this practice text as fast and accurately as you can." }
+        };
+
+        window.onload = function() {
+            loadSavedStudentData();
+            setCategory('routine');
+            setupKeyboardVisualizer();
+            document.getElementById('hidden-typing-input').focus();
+        };
+
+        function saveStudentData() {
+            state.studentName = document.getElementById('user-fullname').value;
+            state.studentClass = document.getElementById('user-class').value;
+            localStorage.setItem('typing_student_name', state.studentName);
+            localStorage.setItem('typing_student_class', state.studentClass);
+        }
+
+        function loadSavedStudentData() {
+            const savedName = localStorage.getItem('typing_student_name');
+            const savedClass = localStorage.getItem('typing_student_class');
+            if (savedName) {
+                state.studentName = savedName;
+                document.getElementById('user-fullname').value = savedName;
+            }
+            if (savedClass) {
+                state.studentClass = savedClass;
+                document.getElementById('user-class').value = savedClass;
+            }
+        }
+
+        function updateStudentData() {
+            saveStudentData();
+        }
+
+        function setCategory(cat) {
+            state.category = cat;
+            document.querySelectorAll('.cat-btn').forEach(b => {
+                b.classList.remove('border-cyan-400', 'bg-cyan-50', 'text-slate-800');
+                b.classList.add('border-slate-200', 'bg-slate-50', 'text-slate-600');
+            });
+            const activeBtn = document.getElementById(`cat-${cat}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('border-slate-200', 'text-slate-600');
+                activeBtn.classList.add('border-cyan-400', 'bg-cyan-50', 'text-slate-800');
+            }
+
+            const customPanel = document.getElementById('dynamic-input-panel');
+            const customBox = document.getElementById('custom-text-box');
+            const vocabBox = document.getElementById('vocab-list-box');
+
+            customBox.classList.add('hidden');
+            vocabBox.classList.add('hidden');
+            customPanel.classList.add('hidden');
+
+            if (cat === 'custom') {
+                customPanel.classList.remove('hidden');
+                customBox.classList.remove('hidden');
+                document.getElementById('active-category-badge').textContent = "Incolla Testo";
+                return;
+            }
+
+            if (cat === 'vocab') {
+                customPanel.classList.remove('hidden');
+                vocabBox.classList.remove('hidden');
+                document.getElementById('active-category-badge').textContent = "Mie Parole";
+                renderVocabList();
+                loadVocabItems();
+                return;
+            }
+
+            const titles = {
+                routine: "Daily Routine",
+                twisters: "Scioglilingua Agility",
+                chat: "Chat & Dialoghi",
+                email: "Email & Diario",
+                verbs: "Verbi & Frasi"
+            };
+            document.getElementById('active-category-badge').textContent = titles[cat] || cat;
+            loadItemsForCurrentCategory();
+        }
+
+        function setDifficulty(diff) {
+            state.difficulty = diff;
+            ['beginner', 'intermediate', 'expert'].forEach(d => {
+                const btn = document.getElementById(`diff-${d}`);
+                if (d === diff) {
+                    btn.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-cyan-400 text-slate-900 shadow-sm transition cursor-pointer";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer";
+                }
+            });
+
+            if (state.autoTimer) {
+                if (diff === 'beginner') setTimerDuration(180);
+                else if (diff === 'intermediate') setTimerDuration(120);
+                else setTimerDuration(90);
+            }
+
+            if (state.category !== 'custom' && state.category !== 'vocab') {
+                loadItemsForCurrentCategory();
+            }
+        }
+
+        function loadItemsForCurrentCategory() {
+            if (state.category === 'custom') {
+                state.items = [state.customUserText];
+            } else if (state.category === 'vocab') {
+                loadVocabItems();
+                return;
+            } else {
+                const catObj = textDatabases[state.category];
+                state.items = catObj ? (catObj[state.difficulty] || catObj.beginner) : [];
+            }
+            state.currentIndex = 0;
+            initCurrentItem();
+        }
+
+        function loadVocabItems() {
+            if (state.customVocabList.length === 0) {
+                state.items = [
+                    { en: "alarm clock wakes me up early.", it: "La sveglia mi sveglia presto." },
+                    { en: "breakfast is the most important meal.", it: "La colazione è il pasto più importante." }
+                ];
+            } else {
+                state.items = state.customVocabList.map(v => ({
+                    en: `${v.word} - ${v.translation}`,
+                    it: v.translation
+                }));
+            }
+            state.currentIndex = 0;
+            initCurrentItem();
+        }
+
+        function loadCustomText() {
+            const titleInput = document.getElementById('custom-title-input').value.trim();
+            const textInput = document.getElementById('custom-text-input').value.trim();
+            if (!textInput) {
+                showToast("⚠️ Attenzione", "Inserisci del testo nel riquadro prima di caricare.", "amber");
+                return;
+            }
+            state.customUserText = {
+                title: titleInput || "Custom Exercise",
+                text: textInput,
+                en: textInput,
+                it: "Testo personalizzato"
+            };
+            state.items = [state.customUserText];
+            state.currentIndex = 0;
+            initCurrentItem();
+            showToast("✨ Brano Caricato", "Il tuo testo personalizzato è pronto!", "cyan");
+        }
+
+        function addVocabWord() {
+            const w = document.getElementById('vocab-word-input').value.trim();
+            const t = document.getElementById('vocab-trans-input').value.trim();
+            if (!w || !t) {
+                showToast("⚠️ Campi vuoti", "Inserisci sia la parola che la traduzione.", "amber");
+                return;
+            }
+            state.customVocabList.push({ word: w, translation: t });
+            localStorage.setItem('typing_vocab_list', JSON.stringify(state.customVocabList));
+            document.getElementById('vocab-word-input').value = "";
+            document.getElementById('vocab-trans-input').value = "";
+            renderVocabList();
+            loadVocabItems();
+            showToast("✅ Parola Aggiunta", `"${w}" salvata nel dizionario!`, "cyan");
+        }
+
+        function renderVocabList() {
+            document.getElementById('vocab-counter').textContent = `${state.customVocabList.length} parole`;
+        }
+
+        function clearVocabList() {
+            state.customVocabList = [];
+            localStorage.removeItem('typing_vocab_list');
+            renderVocabList();
+            loadVocabItems();
+            showToast("🗑️ Lista Svuotata", "Il dizionario personale è stato azzerato.", "cyan");
+        }
+
+        function toggleAutoTimer() {
+            state.autoTimer = document.getElementById('auto-timer-toggle').checked;
+        }
+
+        function setTimerDuration(seconds) {
+            state.timerSeconds = seconds;
+            state.timeRemaining = seconds;
+            document.querySelectorAll('.timer-preset').forEach(b => {
+                b.className = "timer-preset py-1.5 px-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 font-bold text-xs transition cursor-pointer";
+            });
+            const btnId = `preset-${seconds}`;
+            const targetBtn = document.getElementById(btnId);
+            if (targetBtn) {
+                targetBtn.className = "timer-preset py-1.5 px-2 rounded-xl border border-cyan-400 bg-cyan-50 text-cyan-700 font-bold text-xs transition cursor-pointer";
+            }
+            updateTimerDisplay();
+        }
+
+        function adjustTimer(delta) {
+            state.timerSeconds = Math.max(30, state.timerSeconds + delta);
+            state.timeRemaining = state.timerSeconds;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(state.timeRemaining / 60);
+            const s = state.timeRemaining % 60;
+            const formatted = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            document.getElementById('timer-countdown').textContent = formatted;
+            document.getElementById('timer-display-setting').textContent = formatted;
+            
+            const pct = (state.timeRemaining / state.timerSeconds) * 100;
+            document.getElementById('timer-bar-fill').style.width = `${pct}%`;
+        }
+
+        function startTimerIfNeeded() {
+            if (!state.isRunning && !state.isFinished) {
+                state.isRunning = true;
+                state.timerInterval = setInterval(() => {
+                    if (state.timeRemaining > 0) {
+                        state.timeRemaining--;
+                        updateTimerDisplay();
+                        updateRealtimeStats();
+                        if (state.timeRemaining === 0) {
+                            finishSession();
+                        }
+                    }
+                }, 1000);
+            }
+        }
+
+        function initCurrentItem() {
+            if (state.currentIndex >= state.items.length) {
+                state.currentIndex = 0;
+            }
+            const item = state.items[state.currentIndex];
+            // Normalize spaces to ensure natural separation
+            state.currentText = (item.en || item.text).replace(/\s+/g, ' ');
+            state.currentTranslation = item.it || "";
+            state.charIndex = 0;
+            state.errors = 0;
+            state.errorIndices = new Set();
+
+            document.getElementById('item-counter').textContent = `Frase ${state.currentIndex + 1} di ${state.items.length}`;
+            document.getElementById('item-translation').textContent = state.currentTranslation ? `🇹🇩 ${state.currentTranslation}` : "";
+            
+            renderTextDisplay();
+            highlightNextKey();
+        }
+
+        function renderTextDisplay() {
+            const container = document.getElementById('text-display-area');
+            container.innerHTML = "";
+
+            for (let i = 0; i < state.currentText.length; i++) {
+                const span = document.createElement('span');
+                const char = state.currentText[i];
+                
+                // Make space characters clearly visible and spaced
+                if (char === ' ') {
+                    span.innerHTML = '&nbsp;';
+                    span.className = "inline-block px-1.5 transition-all duration-75 ";
+                } else {
+                    span.textContent = char;
+                    span.className = "transition-all duration-75 inline-block ";
+                }
+
+                if (i < state.charIndex) {
+                    if (state.errorIndices && state.errorIndices.has(i)) {
+                        span.className += " char-incorrect text-white px-0.5 rounded";
+                    } else {
+                        span.classList.add('char-correct');
+                    }
+                } else if (i === state.charIndex) {
+                    span.classList.add('char-current');
+                } else {
+                    span.classList.add('text-slate-400');
+                }
+                container.appendChild(span);
+            }
+        }
+
+        function focusTypingInput() {
+            document.getElementById('hidden-typing-input').focus();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (state.isFinished) return;
+            if (e.key === 'F1' || e.key === 'F5' || e.key === 'Tab' || e.key === 'Alt' || e.key === 'Control' || e.key === 'Meta') return;
+
+            startTimerIfNeeded();
+            focusTypingInput();
+
+            const targetChar = state.currentText[state.charIndex];
+
+            if (e.key === 'Backspace') {
+                if (state.charIndex > 0) {
+                    state.charIndex--;
+                    if (state.errorIndices) state.errorIndices.delete(state.charIndex);
+                    renderTextDisplay();
+                    highlightNextKey();
+                    playAudio('back');
+                }
+                return;
+            }
+
+            if (e.key.length === 1) {
+                state.totalKeystrokes++;
+                animateVirtualKey(e.key);
+
+                if (!state.errorIndices) state.errorIndices = new Set();
+
+                if (e.key === targetChar) {
+                    state.correctChars++;
+                    state.currentStreak++;
+                    if (state.currentStreak > state.maxStreak) {
+                        state.maxStreak = state.currentStreak;
+                    }
+                    playAudio('correct');
+                } else {
+                    state.errors++;
+                    state.currentStreak = 0;
+                    state.errorIndices.add(state.charIndex);
+                    playAudio('error');
+                }
+
+                // Permissive error handling: always advance to next char
+                state.charIndex++;
+
+                document.getElementById('current-streak').textContent = state.currentStreak;
+                renderTextDisplay();
+                updateRealtimeStats();
+                highlightNextKey();
+
+                if (state.charIndex >= state.currentText.length) {
+                    state.completedItems++;
+                    state.bonusPoints += 25;
+                    checkDailyGoals();
+                    showToast("🎉 Ottimo Lavoro!", "Frase completata! +25 XP bonus", "cyan");
+                    setTimeout(() => {
+                        state.currentIndex++;
+                        state.errorIndices = new Set();
+                        initCurrentItem();
+                    }, 400);
+                }
+            }
+        });
+
+        function updateRealtimeStats() {
+            const elapsedSec = state.timerSeconds - state.timeRemaining;
+            if (elapsedSec <= 0) return;
+            const minutes = elapsedSec / 60;
+            const wpm = Math.round((state.correctChars / 5) / minutes);
+            const accuracy = state.totalKeystrokes > 0 
+                ? Math.round((state.correctChars / state.totalKeystrokes) * 100) 
+                : 100;
+
+            document.getElementById('stat-wpm').textContent = wpm;
+            document.getElementById('stat-acc').textContent = accuracy;
+            checkDailyGoals();
+        }
+
+        function checkDailyGoals() {
+            const elapsedSec = getElapsedSeconds();
+            const minutes = elapsedSec / 60;
+            const wpm = Math.round((state.correctChars / 5) / minutes);
+            const accuracy = state.totalKeystrokes > 0 ? Math.round((state.correctChars / state.totalKeystrokes) * 100) : 100;
+
+            // Goal 1: WPM >= 25
+            const g1 = document.getElementById('goal-1');
+            if (wpm >= 25) {
+                g1.classList.remove('bg-slate-50', 'border-slate-200');
+                g1.classList.add('bg-emerald-50', 'border-emerald-300');
+                document.getElementById('goal-1-icon').textContent = '✅';
+            }
+
+            // Goal 2: Accuracy >= 90
+            const g2 = document.getElementById('goal-2');
+            if (accuracy >= 90 && state.totalKeystrokes >= 10) {
+                g2.classList.remove('bg-slate-50', 'border-slate-200');
+                g2.classList.add('bg-emerald-50', 'border-emerald-300');
+                document.getElementById('goal-2-icon').textContent = '✅';
+            }
+
+            // Goal 3: Completed >= 2
+            const g3 = document.getElementById('goal-3');
+            if (state.completedItems >= 2) {
+                g3.classList.remove('bg-slate-50', 'border-slate-200');
+                g3.classList.add('bg-emerald-50', 'border-emerald-300');
+                document.getElementById('goal-3-icon').textContent = '✅';
+            }
+        }
+
+        function getElapsedSeconds() {
+            return Math.max(1, state.timerSeconds - state.timeRemaining);
+        }
+
+        function setupKeyboardVisualizer() {
+            document.querySelectorAll('.v-key').forEach(keyEl => {
+                keyEl.addEventListener('click', (ev) => {
+                    ev.stopPropagation();
+                    const keyValue = keyEl.getAttribute('data-key');
+                    simulateKeyPress(keyValue);
+                });
+            });
+        }
+
+        function highlightNextKey() {
+            document.querySelectorAll('.v-key').forEach(k => k.classList.remove('active-target'));
+            
+            if (state.charIndex < state.currentText.length) {
+                const nextChar = state.currentText[state.charIndex].toLowerCase();
+                document.querySelectorAll('.v-key').forEach(k => {
+                    if (k.getAttribute('data-key') && k.getAttribute('data-key').toLowerCase() === nextChar) {
+                        k.classList.add('active-target');
+                    }
+                });
+                if (nextChar === ' ') {
+                    const spaceKey = document.querySelector('[data-key=" "]');
+                    if (spaceKey) spaceKey.classList.add('active-target');
+                }
+            }
+        }
+
+        function animateVirtualKey(char) {
+            const lower = char.toLowerCase();
+            document.querySelectorAll('.v-key').forEach(k => {
+                if (k.getAttribute('data-key') && k.getAttribute('data-key').toLowerCase() === lower) {
+                    k.classList.add('pressed');
+                    setTimeout(() => k.classList.remove('pressed'), 120);
+                }
+            });
+        }
+
+        function toggleAudio() {
+            state.audioEnabled = !state.audioEnabled;
+            const btn = document.getElementById('audio-toggle-btn');
+            btn.innerHTML = state.audioEnabled ? "🔊 <span class='hidden sm:inline'>Audio</span>" : "🔇 <span class='hidden sm:inline'>Muto</span>";
+            showToast(state.audioEnabled ? "🔊 Audio Attivato" : "🔇 Audio Disattivato", "", "cyan");
+        }
+
+        function playAudio(type) {
+            if (!state.audioEnabled) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (type === 'correct') {
+                    osc.frequency.setValueAtTime(580, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.08);
+                    gain.gain.setValueAtTime(0.04, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.08);
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.12);
+                    gain.gain.setValueAtTime(0.06, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.12);
+                } else if (type === 'back') {
+                    osc.frequency.setValueAtTime(320, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.03, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.05);
+                }
+            } catch (e) {}
+        }
+
+        function simulateKeyPress(keyValue) {
+            if (state.isFinished) return;
+            startTimerIfNeeded();
+            
+            const targetChar = state.currentText[state.charIndex];
+            state.totalKeystrokes++;
+
+            if (keyValue.toLowerCase() === targetChar.toLowerCase()) {
+                state.correctChars++;
+                state.currentStreak++;
+                if (state.currentStreak > state.maxStreak) state.maxStreak = state.currentStreak;
+                playAudio('correct');
+            } else {
+                state.errors++;
+                state.currentStreak = 0;
+                if (!state.errorIndices) state.errorIndices = new Set();
+                state.errorIndices.add(state.charIndex);
+                playAudio('error');
+            }
+
+            state.charIndex++;
+
+            document.getElementById('current-streak').textContent = state.currentStreak;
+            renderTextDisplay();
+            updateRealtimeStats();
+            highlightNextKey();
+
+            if (state.charIndex >= state.currentText.length) {
+                state.completedItems++;
+                state.bonusPoints += 25;
+                showToast("🎉 Ottimo Lavoro!", "Frase completata! +25 XP bonus", "cyan");
+                setTimeout(() => {
+                    state.currentIndex++;
+                    state.errorIndices = new Set();
+                    initCurrentItem();
+                }, 400);
+            }
+        }
+
+        function finishSessionEarly(e) {
+            if (e) e.stopPropagation();
+            if (state.totalKeystrokes === 0) {
+                showToast("ℹ️ Nessun dato", "Digita almeno qualche parola prima di generare il report!", "cyan");
+                return;
+            }
+            finishSession();
+        }
+
+        function finishSession() {
+            clearInterval(state.timerInterval);
+            state.isRunning = false;
+            state.isFinished = true;
+
+            const elapsedSec = getElapsedSeconds();
+            const minutes = elapsedSec / 60;
+            const wpm = Math.round((state.correctChars / 5) / minutes);
+            const accuracy = state.totalKeystrokes > 0
+                ? Math.round((state.correctChars / state.totalKeystrokes) * 100)
+                : 100;
+
+            let gradeComment = "Valutazione: Buon inizio! Continua ad allenarti.";
+            if (wpm >= 45 && accuracy >= 97) {
+                gradeComment = "Valutazione: Campione Assoluto (10/10 e Lode) • Velocità e perfezione sbalorditive!";
+            } else if (wpm >= 38 && accuracy >= 95) {
+                gradeComment = "Valutazione: Eccellente (10/10) • Padronanza da professionista!";
+            } else if (wpm >= 30 && accuracy >= 90) {
+                gradeComment = "Valutazione: Ottimo (9/10) • Ottima fluidità in inglese!";
+            } else if (wpm >= 22 && accuracy >= 85) {
+                gradeComment = "Valutazione: Distinto (8/10) • Ritmo costante!";
+            } else if (wpm >= 12) {
+                gradeComment = "Valutazione: Buono (7/10) • Stai prendendo molta confidenza!";
+            }
+
+            const badges = [];
+            if (state.category === 'twisters') {
+                badges.push({ icon: "🌀", title: "Lingua di Fuoco", desc: "Superato l'allenamento scioglilingua!", pts: 180 });
+            }
+            if (wpm >= 45) {
+                badges.push({ icon: "⚡", title: "Supersonico", desc: "Superati i 45 WPM!", pts: 250 });
+            } else if (wpm >= 35) {
+                badges.push({ icon: "🚀", title: "Fulmine della Tastiera", desc: "Superati i 35 WPM!", pts: 150 });
+            } else if (wpm >= 22) {
+                badges.push({ icon: "💨", title: "Velocista Mattiniero", desc: "Ritmo superiore a 22 WPM!", pts: 80 });
+            }
+
+            if (accuracy === 100 && state.totalKeystrokes >= 30) {
+                badges.push({ icon: "👑", title: "Perfezione Assoluta", desc: "100% di precisione senza errori!", pts: 300 });
+            } else if (accuracy >= 98 && state.totalKeystrokes >= 20) {
+                badges.push({ icon: "🎯", title: "Precisione Chirurgica", desc: "Accuratezza superiore al 98%!", pts: 120 });
+            } else if (accuracy >= 90 && state.totalKeystrokes >= 15) {
+                badges.push({ icon: "💎", title: "Mano Ferma", desc: "Precisione superiore al 90%!", pts: 60 });
+            }
+
+            if (state.maxStreak >= 75) {
+                badges.push({ icon: "💥", title: "Leggenda della Combo", desc: `Serie incredibile di ${state.maxStreak} tasti!`, pts: 200 });
+            } else if (state.maxStreak >= 40) {
+                badges.push({ icon: "🔥", title: "Combo Master", desc: `Serie consecutiva di ${state.maxStreak} tasti!`, pts: 100 });
+            }
+
+            if (state.completedItems >= 5) {
+                badges.push({ icon: "📚", title: "Maratoneta dell'Inglese", desc: `${state.completedItems} esercizi completati!`, pts: 150 });
+            } else if (state.completedItems >= 2) {
+                badges.push({ icon: "🌟", title: "Costanza di Studio", desc: `${state.completedItems} contenuti completati!`, pts: 90 });
+            }
+
+            if (badges.length === 0) {
+                badges.push({ icon: "🌱", title: "Primo Passo", desc: "Sessione completata con successo!", pts: 50 });
+            }
+
+            state.earnedBadges = badges;
+            const badgePointsTotal = badges.reduce((acc, b) => acc + b.pts, 0);
+            const totalScore = (state.correctChars * 2) + state.bonusPoints + badgePointsTotal;
+
+            state.finalMetrics = { wpm, accuracy, elapsedSec, totalScore, gradeComment };
+
+            document.getElementById('result-grade-comment').textContent = gradeComment;
+            document.getElementById('final-wpm').textContent = `${wpm} WPM`;
+            document.getElementById('final-accuracy').textContent = `${accuracy}%`;
+            document.getElementById('final-streak').textContent = state.maxStreak;
+            document.getElementById('final-score').textContent = `${totalScore} XP`;
+            document.getElementById('badges-count').textContent = badges.length;
+
+            document.getElementById('badges-container').innerHTML = badges.map(b => `
+                <div class="flex items-center gap-2.5 bg-slate-50 border border-slate-200 rounded-2xl p-2.5 shadow-sm">
+                    <span class="text-2xl">${b.icon}</span>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-display font-bold text-xs sm:text-sm text-slate-800 truncate">${b.title}</div>
+                        <div class="text-[11px] text-slate-500 truncate">${b.desc}</div>
+                    </div>
+                    <span class="text-xs font-bold text-cyan-700 bg-cyan-100 px-2 py-0.5 rounded-lg border border-cyan-300">+${b.pts} XP</span>
+                </div>
+            `).join('');
+
+            document.getElementById('results-modal').classList.remove('hidden');
+            launchConfetti();
+        }
+
+        function closeModalAndRestart() {
+            document.getElementById('results-modal').classList.add('hidden');
+            resetSession();
+        }
+
+        function resetSession() {
+            clearInterval(state.timerInterval);
+            state.isRunning = false;
+            state.isFinished = false;
+            state.timeRemaining = state.timerSeconds;
+            state.charIndex = 0;
+            state.errors = 0;
+            state.correctChars = 0;
+            state.totalKeystrokes = 0;
+            state.currentStreak = 0;
+            state.maxStreak = 0;
+            state.completedItems = 0;
+            state.bonusPoints = 0;
+            state.errorIndices = new Set();
+            
+            updateTimerDisplay();
+            initCurrentItem();
+            document.getElementById('stat-wpm').textContent = '0';
+            document.getElementById('stat-acc').textContent = '100';
+            document.getElementById('current-streak').textContent = '0';
+            focusTypingInput();
+        }
+
+        function downloadReportHTML() {
+            const m = state.finalMetrics;
+            const name = state.studentName || "Alunno/a";
+            const className = state.studentClass || "Terza Media";
+            const dateStr = new Date().toLocaleDateString('it-IT', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+            const htmlContent = `<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Report Certificato - Daily Routine Typing Pro</title>
+    <script src="https://cdn.tailwindcss.com"><\/script>
+</head>
+<body class="bg-slate-50 p-6 font-sans text-slate-800 max-w-2xl mx-auto">
+    <div class="bg-white border-4 border-cyan-400 rounded-3xl p-8 shadow-2xl">
+        <div class="text-center pb-6 border-b border-slate-100 mb-6">
+            <h1 class="text-2xl font-black text-cyan-600">📜 CERTIFICATO DI DIGITAZIONE VELOCE</h1>
+            <p class="text-sm text-slate-500">Daily Routine Typing Pro • Terza Media</p>
+            <p class="text-xs text-slate-400 mt-1">${dateStr}</p>
+        </div>
+        <div class="space-y-3 mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <div class="flex justify-between"><strong>Alunno/a:</strong> <span class="text-cyan-700 font-bold">${name}</span></div>
+            <div class="flex justify-between"><strong>Classe:</strong> <span class="text-cyan-700 font-bold">${className}</span></div>
+            <div class="flex justify-between"><strong>Categoria:</strong> <span class="capitalize">${state.category}</span></div>
+            <div class="flex justify-between"><strong>Livello:</strong> <span class="capitalize">${state.difficulty}</span></div>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="bg-cyan-50 p-4 rounded-2xl text-center border border-cyan-200">
+                <div class="text-xs text-cyan-700 font-bold">VELOCITÀ</div>
+                <div class="text-3xl font-black text-cyan-800">${m.wpm} WPM</div>
+            </div>
+            <div class="bg-pink-50 p-4 rounded-2xl text-center border border-pink-200">
+                <div class="text-xs text-pink-700 font-bold">PRECISIONE</div>
+                <div class="text-3xl font-black text-pink-800">${m.accuracy}%</div>
+            </div>
+        </div>
+        <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl mb-6 text-center">
+            <div class="text-xs font-bold text-amber-700 uppercase">Valutazione Didattica</div>
+            <div class="text-sm font-bold text-slate-800 mt-1">${m.gradeComment}</div>
+        </div>
+        <div class="text-center text-xs text-slate-400 pt-4 border-t border-slate-100">
+            Documento generato automaticamente dalla piattaforma Daily Routine Typing Pro.
+        </div>
+    </div>
+</body>
+</html>`;
+
+            const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Report_Typing_${(name).replace(/\s+/g, '_')}_${className}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("📥 Report Scaricato", "Il report certificato HTML è stato salvato!", "cyan");
+        }
+
+        function downloadReportTXT() {
+            const m = state.finalMetrics;
+            const name = state.studentName || "Alunno/a";
+            const className = state.studentClass || "Terza Media";
+            const dateStr = new Date().toLocaleDateString('it-IT');
+
+            const txt = `========================================
+CERTIFICATO DI DIGITAZIONE - DAILY ROUTINE TYPING PRO
+========================================
+Data: ${dateStr}
+Alunno/a: ${name}
+Classe: ${className}
+Categoria: ${state.category}
+Livello: ${state.difficulty}
+----------------------------------------
+RISULTATI FINALI:
+- Velocità: ${m.wpm} WPM
+- Precisione: ${m.accuracy}%
+- Serie Massima: ${state.maxStreak} tasti
+- Punteggio Totale: ${m.totalScore} XP
+- Valutazione: ${m.gradeComment}
+========================================
+`;
+
+            const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Report_Typing_${(name).replace(/\s+/g, '_')}_${className}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("📄 Report TXT Scaricato", "Il file di testo è stato salvato!", "cyan");
+        }
+
+        function showToast(title, desc) {
+            const toast = document.getElementById('toast-notification');
+            document.getElementById('toast-title').textContent = title;
+            document.getElementById('toast-desc').textContent = desc;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        function launchConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const colors = ['#06b6d4', '#ec4899', '#eab308', '#a855f7', '#10b981'];
+
+            for (let i = 0; i < 90; i++) {
+                particles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    vx: (Math.random() - 0.5) * 16,
+                    vy: (Math.random() - 0.5) * 16 - 4,
+                    radius: Math.random() * 6 + 3,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    alpha: 1,
+                    decay: Math.random() * 0.015 + 0.008
+                });
+            }
+
+            function update() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach((p, index) => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.4;
+                    p.alpha -= p.decay;
+
+                    if (p.alpha <= 0) {
+                        particles.splice(index, 1);
+                        return;
+                    }
+
+                    ctx.save();
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                });
+
+                if (particles.length > 0) {
+                    requestAnimationFrame(update);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            update();
+        }
+    </script>
+</body>
+</html>
