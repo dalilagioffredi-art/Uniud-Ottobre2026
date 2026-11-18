@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Routine Typing Pro • Piattaforma Digitazione Veloce</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fredoka, Poppins & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['Fredoka', 'sans-serif'],
+                        sans: ['Poppins', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pop': 'pop 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                        'shake': 'shake 0.3s ease-in-out',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        pop: {
+                            '0%': { transform: 'scale(0.85)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
+                        },
+                        shake: {
+                            '0%, 100%': { transform: 'translateX(0)' },
+                            '25%': { transform: 'translateX(-6px)' },
+                            '75%': { transform: 'translateX(6px)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-14px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #f0f9ff 0%, #fdf4ff 45%, #fffbeb 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: #1e293b;
+        }
+
+        .bg-shape {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(75px);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.65;
+        }
+
+        .char-current {
+            background-color: #fde047;
+            color: #0f172a;
+            border-bottom: 3px solid #f59e0b;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(250, 204, 21, 0.75);
+            animation: cursorPulse 1s infinite;
+        }
+
+        @keyframes cursorPulse {
+            0%, 49% { background-color: #fde047; }
+            50%, 100% { background-color: #fef08a; }
+        }
+
+        .char-correct {
+            color: #059669;
+            background-color: #ecfdf5;
+            border-radius: 3px;
+        }
+
+        .char-incorrect {
+            color: #ffffff !important;
+            background-color: #f43f5e !important;
+            border-radius: 5px;
+            box-shadow: 0 0 8px rgba(244, 63, 94, 0.6);
+        }
+
+        .v-key {
+            transition: all 0.08s ease;
+            box-shadow: 0 3px 0 #cbd5e1;
+        }
+        .v-key.active-target {
+            background: linear-gradient(135deg, #06b6d4, #8b5cf6) !important;
+            color: #ffffff !important;
+            border-color: #fde047 !important;
+            transform: translateY(-2px) scale(1.06);
+            box-shadow: 0 0 14px rgba(6, 182, 212, 0.65), 0 3px 0 #4f46e5;
+            font-weight: 700;
+        }
+        .v-key.pressed {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #94a3b8;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c084fc;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a855f7;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased selection:bg-pink-400 selection:text-white">
+
+    <!-- Bolle di luce pastello vivace -->
+    <div class="bg-shape w-96 h-96 bg-cyan-200 top-[-6%] left-[-5%] animate-float"></div>
+    <div class="bg-shape w-96 h-96 bg-pink-200 bottom-[-8%] right-[-4%] animate-float" style="animation-delay: 2s;"></div>
+    <div class="bg-shape w-80 h-80 bg-amber-200 top-[35%] left-[55%]"></div>
+    <div class="bg-shape w-72 h-72 bg-violet-200 top-[60%] left-[10%]"></div>
+
+    <!-- Canvas Coriandoli -->
+    <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+    <!-- Notifiche Toast -->
+    <div id="toast-container" class="fixed top-20 right-4 z-40 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Input file nascosto per caricare il JSON salvato -->
+    <input type="file" id="import-json-file" accept=".json" class="hidden" onchange="handleImportJsonFile(event)">
+
+    <!-- CONTAINER PRINCIPALE -->
+    <div class="relative z-10 max-w-6xl mx-auto px-4 py-4 flex flex-col min-h-screen justify-between">
+        
+        <!-- HEADER PIATTAFORMA -->
+        <header class="flex flex-wrap items-center justify-between gap-4 bg-white/90 backdrop-blur-md border-2 border-cyan-200 rounded-3xl px-5 py-3.5 shadow-lg shadow-cyan-500/10">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-400 via-violet-500 to-pink-500 flex items-center justify-center text-2xl text-white shadow-md transform -rotate-3">
+                    ⌨️
+                </div>
+                <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h1 class="font-display text-2xl sm:text-3xl font-bold bg-gradient-to-r from-violet-600 via-pink-500 to-cyan-500 bg-clip-text text-transparent">
+                            DAILY ROUTINE TYPING PRO
+                        </h1>
+                        <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-300">
+                            3ª Media • Piattaforma
+                        </span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-500 font-medium">Allena velocità e precisione con testi, dialoghi, brani incollati e il tuo vocabolario!</p>
+                </div>
+            </div>
+
+            <!-- Controlli Rapidi Header -->
+            <div class="flex flex-wrap items-center gap-2">
+                <input type="text" id="student-name-input" placeholder="Nome e Classe (es. Sofia 3A)" 
+                    class="bg-slate-50 border-2 border-violet-200 rounded-2xl px-3.5 py-1.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-violet-500 focus:bg-white w-48 sm:w-52 transition font-medium">
+
+                <!-- NUOVI PULSANTI JSON -->
+                <button onclick="exportTextsJson()" title="Salva tutti i testi e le parole in formato JSON"
+                    class="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 text-emerald-800 text-xs sm:text-sm font-bold transition cursor-pointer">
+                    <span>💾</span>
+                    <span class="hidden md:inline">Salva JSON</span>
+                </button>
+
+                <button onclick="triggerImportJson()" title="Carica testi e parole da un file JSON salvato"
+                    class="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-violet-100 hover:bg-violet-200 border border-violet-300 text-violet-800 text-xs sm:text-sm font-bold transition cursor-pointer">
+                    <span>📂</span>
+                    <span class="hidden md:inline">Carica JSON</span>
+                </button>
+
+                <button onclick="openHistoryModal()" title="Storico Sessioni Salvate"
+                    class="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-amber-100 hover:bg-amber-200 border border-amber-300 text-amber-800 text-xs sm:text-sm font-bold transition cursor-pointer">
+                    <span>📊</span>
+                    <span class="hidden md:inline">Storico</span>
+                </button>
+
+                <button id="toggle-keyboard-btn" onclick="toggleVirtualKeyboard()" title="Mostra/Nascondi Tastiera Guida"
+                    class="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-cyan-100 hover:bg-cyan-200 border border-cyan-300 text-cyan-800 text-xs sm:text-sm font-bold transition cursor-pointer">
+                    <span>🎹</span>
+                    <span class="hidden md:inline">Tastiera: ON</span>
+                </button>
+
+                <button id="toggle-sound-btn" onclick="toggleSound()" title="Attiva/Disattiva Suoni"
+                    class="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-pink-100 hover:bg-pink-200 border border-pink-300 text-pink-800 text-xs sm:text-sm font-bold transition cursor-pointer">
+                    <span id="sound-icon">🔊</span>
+                    <span class="hidden md:inline" id="sound-label">Suoni: ON</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- SELETTORE TIPOLOGIA DI TESTO -->
+        <section class="mt-4 bg-white/90 backdrop-blur-md border-2 border-violet-200 rounded-3xl p-3.5 shadow-md">
+            <div class="flex items-center justify-between mb-2 px-1">
+                <span class="text-xs font-bold uppercase tracking-wider text-violet-600 flex items-center gap-1.5">
+                    <span>📚</span> 1. Scegli la Tipologia di Esercizio
+                </span>
+                <span id="category-badge-info" class="text-xs font-semibold text-slate-500">
+                    Frasi graduali sulla giornata tipo
+                </span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                <button onclick="selectCategory('routine')" id="cat-btn-routine"
+                    class="cat-btn flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-2xl border-2 font-display font-bold text-xs sm:text-sm transition cursor-pointer bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-cyan-400 shadow-md shadow-cyan-500/20">
+                    <span>🌅</span> Daily Routine
+                </button>
+
+                <button onclick="selectCategory('dialogues')" id="cat-btn-dialogues"
+                    class="cat-btn flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-2xl border-2 font-display font-bold text-xs sm:text-sm transition cursor-pointer bg-slate-50 hover:bg-pink-50 text-slate-700 border-slate-200">
+                    <span>💬</span> Dialoghi & Chat
+                </button>
+
+                <button onclick="selectCategory('diary')" id="cat-btn-diary"
+                    class="cat-btn flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-2xl border-2 font-display font-bold text-xs sm:text-sm transition cursor-pointer bg-slate-50 hover:bg-amber-50 text-slate-700 border-slate-200">
+                    <span>✉️</span> Email & Diario
+                </button>
+
+                <button onclick="selectCategory('twisters')" id="cat-btn-twisters"
+                    class="cat-btn flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-2xl border-2 font-display font-bold text-xs sm:text-sm transition cursor-pointer bg-slate-50 hover:bg-emerald-50 text-slate-700 border-slate-200">
+                    <span>🌪️</span> Scioglilingua
+                </button>
+
+                <button onclick="selectCategory('custom_text')" id="cat-btn-custom_text"
+                    class="cat-btn flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-2xl border-2 font-display font-bold text-xs sm:text-sm transition cursor-pointer bg-slate-50 hover:bg-violet-50 text-slate-700 border-slate-200">
+                    <span>📋</span> Incolla Testo
+                </button>
+
+                <button onclick="selectCategory('word_list')" id="cat-btn-word_list"
+                    class="cat-btn flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-2xl border-2 font-display font-bold text-xs sm:text-sm transition cursor-pointer bg-slate-50 hover:bg-rose-50 text-slate-700 border-slate-200">
+                    <span>⭐</span> Mie Parole (<span id="saved-words-count-pill">0</span>)
+                </button>
+            </div>
+        </section>
+
+        <!-- PANNELLO DINAMICO PER "INCOLLA TESTO" -->
+        <section id="panel-custom-text" class="hidden mt-3 bg-white/95 backdrop-blur-md border-2 border-violet-300 rounded-3xl p-4 shadow-lg animate-pop">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <h2 class="font-display font-bold text-base sm:text-lg text-violet-700 flex items-center gap-2">
+                    <span>📋</span> Incolla il tuo Testo Personalizzato
+                </h2>
+                <div class="flex items-center gap-2">
+                    <input type="text" id="custom-text-title" placeholder="Titolo brano (es. Verifica Inglese)" 
+                        class="bg-violet-50 border border-violet-200 rounded-xl px-3 py-1.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-violet-500">
+                    <button onclick="pasteFromClipboard()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-300 cursor-pointer">
+                        📥 Incolla dagli Appunti
+                    </button>
+                </div>
+            </div>
+            <textarea id="custom-text-area" rows="3" placeholder="Incolla o scrivi qui qualsiasi testo, brano, dialogo o esercitazione da completare sulla tastiera..."
+                class="w-full bg-slate-50 border-2 border-violet-200 rounded-2xl p-3 text-sm font-mono text-slate-800 focus:outline-none focus:border-violet-500 focus:bg-white"></textarea>
+            <div class="mt-2.5 flex flex-wrap items-center justify-between gap-2">
+                <label class="flex items-center gap-2 text-xs text-slate-600 font-medium cursor-pointer">
+                    <input type="checkbox" id="normalize-spaces-check" checked class="rounded text-violet-600 focus:ring-violet-500">
+                    <span>Normalizza a capo e spazi multipli per una digitazione continua</span>
+                </label>
+                <div class="flex items-center gap-2">
+                    <button onclick="clearCustomText()" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold border border-rose-200 cursor-pointer">
+                        🗑️ Svuota
+                    </button>
+                    <button onclick="applyCustomText()" class="px-5 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-pink-500 hover:from-violet-500 hover:to-pink-400 text-white font-display font-bold text-sm shadow-md cursor-pointer">
+                        🚀 Carica Testo nell'Esercizio
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PANNELLO DINAMICO PER "LA MIA LISTA DI PAROLE" -->
+        <section id="panel-word-list" class="hidden mt-3 bg-white/95 backdrop-blur-md border-2 border-pink-300 rounded-3xl p-4 shadow-lg animate-pop">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div>
+                    <h2 class="font-display font-bold text-base sm:text-lg text-pink-600 flex items-center gap-2">
+                        <span>⭐</span> Il Mio Vocabolario Personale (Salvato Automaticamente)
+                    </h2>
+                    <p class="text-xs text-slate-500">Aggiungi parole singole o coppie <code class="bg-pink-50 text-pink-700 px-1 rounded">parola - traduzione</code>. Puoi anche incollare una lista intera!</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-1.5 bg-pink-50 p-1.5 rounded-2xl border border-pink-200">
+                    <span class="text-[11px] font-bold text-pink-700 px-1.5">Ordine:</span>
+                    <button onclick="setWordMode('sequential')" id="wmode-sequential" class="wmode-btn px-2.5 py-1 rounded-xl text-xs font-bold bg-pink-500 text-white cursor-pointer">Sequenziale</button>
+                    <button onclick="setWordMode('shuffle')" id="wmode-shuffle" class="wmode-btn px-2.5 py-1 rounded-xl text-xs font-bold text-pink-700 hover:bg-pink-100 cursor-pointer">Casuale 🔀</button>
+                    <button onclick="setWordMode('intensive')" id="wmode-intensive" class="wmode-btn px-2.5 py-1 rounded-xl text-xs font-bold text-pink-700 hover:bg-pink-100 cursor-pointer">Mix Intensivo 🔥</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-2 mb-3">
+                <input type="text" id="new-word-en" placeholder="Parola o espressione inglese (es. brush my teeth)" 
+                    class="md:col-span-5 bg-slate-50 border-2 border-pink-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-pink-500">
+                <input type="text" id="new-word-it" placeholder="Traduzione / Nota opzionale (es. lavarsi i denti)" 
+                    class="md:col-span-4 bg-slate-50 border-2 border-pink-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-pink-500">
+                <button onclick="addSingleWord()" class="md:col-span-3 px-4 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-amber-500 hover:from-pink-400 hover:to-amber-400 text-white font-display font-bold text-sm shadow cursor-pointer">
+                    ➕ Aggiungi Parola
+                </button>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3 pb-2 border-b border-slate-100">
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="toggleBulkWordBox()" class="px-3 py-1.5 rounded-xl bg-violet-100 hover:bg-violet-200 text-violet-700 text-xs font-bold cursor-pointer">
+                        📝 Incolla Lista Multipla
+                    </button>
+                    <button onclick="exportWordListJson()" class="px-3 py-1.5 rounded-xl bg-cyan-100 hover:bg-cyan-200 text-cyan-800 text-xs font-bold cursor-pointer">
+                        💾 Esporta Lista
+                    </button>
+                    <button onclick="resetDefaultWords()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold cursor-pointer">
+                        🔄 Ripristina Esempi
+                    </button>
+                </div>
+                <input type="text" id="search-word-input" oninput="renderWordChips()" placeholder="🔍 Cerca nelle tue parole..." 
+                    class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1 text-xs text-slate-700 focus:outline-none focus:border-pink-400">
+            </div>
+
+            <div id="bulk-word-box" class="hidden mb-3 bg-violet-50 p-3 rounded-2xl border border-violet-200">
+                <textarea id="bulk-word-textarea" rows="2" placeholder="Inserisci più parole separate da virgola o una per riga (es: wake up - svegliarsi, have breakfast, go to school)"
+                    class="w-full bg-white border border-violet-200 rounded-xl p-2 text-xs font-mono text-slate-800 focus:outline-none"></textarea>
+                <div class="mt-2 flex justify-end gap-2">
+                    <button onclick="toggleBulkWordBox()" class="px-3 py-1 rounded-lg text-xs text-slate-600 hover:bg-violet-100 cursor-pointer">Annulla</button>
+                    <button onclick="importBulkWords()" class="px-4 py-1 rounded-lg bg-violet-600 text-white text-xs font-bold cursor-pointer">Importa Tutte</button>
+                </div>
+            </div>
+
+            <div id="saved-words-chips" class="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-1"></div>
+        </section>
+
+        <!-- BARRA CONFIGURAZIONE: LIVELLI DIFFICOLTÀ & TIMER FLESSIBILE -->
+        <section class="mt-3 grid grid-cols-1 lg:grid-cols-12 gap-3">
+            
+            <div id="difficulty-box" class="lg:col-span-6 bg-white/90 backdrop-blur-md border-2 border-emerald-200 rounded-3xl p-3.5 shadow-md">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 flex items-center gap-1.5">
+                        <span>🎯</span> 2. Livello di Difficoltà
+                    </span>
+                    <span id="level-desc-badge" class="text-[11px] font-semibold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                        Frasi brevi • Timer suggerito 3:00
+                    </span>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="selectDifficulty('easy', true)" id="btn-diff-easy"
+                        class="diff-btn flex flex-col items-center justify-center p-2.5 rounded-2xl border-2 transition cursor-pointer bg-emerald-500 border-emerald-400 text-white shadow-md shadow-emerald-500/20">
+                        <span class="text-lg">🌱</span>
+                        <span class="font-display font-bold text-xs sm:text-sm">Principiante</span>
+                        <span class="text-[10px] opacity-90">Base (3:00 min)</span>
+                    </button>
+
+                    <button onclick="selectDifficulty('medium', true)" id="btn-diff-medium"
+                        class="diff-btn flex flex-col items-center justify-center p-2.5 rounded-2xl border-2 transition cursor-pointer bg-slate-50 border-slate-200 hover:bg-amber-50 text-slate-700">
+                        <span class="text-lg">⚡</span>
+                        <span class="font-display font-bold text-xs sm:text-sm">Intermedio</span>
+                        <span class="text-[10px] text-slate-500">Medio (2:00 min)</span>
+                    </button>
+
+                    <button onclick="selectDifficulty('hard', true)" id="btn-diff-hard"
+                        class="diff-btn flex flex-col items-center justify-center p-2.5 rounded-2xl border-2 transition cursor-pointer bg-slate-50 border-slate-200 hover:bg-pink-50 text-slate-700">
+                        <span class="text-lg">🔥</span>
+                        <span class="font-display font-bold text-xs sm:text-sm">Esperto Pro</span>
+                        <span class="text-[10px] text-slate-500">Avanzato (1:30)</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="lg:col-span-6 bg-white/90 backdrop-blur-md border-2 border-amber-200 rounded-3xl p-3.5 shadow-md">
+                <div class="flex flex-wrap items-center justify-between gap-1 mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
+                        <span>⏱️</span> 3. Timer Personalizzabile
+                    </span>
+                    <label class="flex items-center gap-1.5 text-[11px] font-bold text-violet-700 bg-violet-100 px-2.5 py-0.5 rounded-full cursor-pointer">
+                        <input type="checkbox" id="sync-timer-level-check" checked class="rounded text-violet-600">
+                        <span>Adatta timer al livello</span>
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-5 gap-1.5 mb-2">
+                    <button onclick="setTimerPreset(180)" id="btn-time-180" class="time-btn py-1.5 px-1 rounded-xl border-2 font-display font-bold text-xs transition cursor-pointer bg-amber-400 border-amber-500 text-slate-900 shadow-sm">
+                        3:00
+                    </button>
+                    <button onclick="setTimerPreset(120)" id="btn-time-120" class="time-btn py-1.5 px-1 rounded-xl border-2 font-display font-bold text-xs transition cursor-pointer bg-slate-50 border-slate-200 hover:bg-amber-50 text-slate-700">
+                        2:00
+                    </button>
+                    <button onclick="setTimerPreset(90)" id="btn-time-90" class="time-btn py-1.5 px-1 rounded-xl border-2 font-display font-bold text-xs transition cursor-pointer bg-slate-50 border-slate-200 hover:bg-amber-50 text-slate-700">
+                        1:30
+                    </button>
+                    <button onclick="setTimerPreset(60)" id="btn-time-60" class="time-btn py-1.5 px-1 rounded-xl border-2 font-display font-bold text-xs transition cursor-pointer bg-slate-50 border-slate-200 hover:bg-amber-50 text-slate-700">
+                        1:00
+                    </button>
+                    <button onclick="setFreeStopwatchMode()" id="btn-time-free" class="time-btn py-1.5 px-1 rounded-xl border-2 font-display font-bold text-[11px] transition cursor-pointer bg-slate-50 border-slate-200 hover:bg-cyan-50 text-cyan-700" title="Cronometro senza limiti di tempo">
+                        ∞ Libero
+                    </button>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-2 bg-amber-50/80 border border-amber-200 rounded-2xl px-3 py-1.5">
+                    <div class="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                        <span>Durata esatta:</span>
+                        <input type="number" id="custom-min-input" min="0" max="59" value="3" onchange="applyCustomDurationInputs()"
+                            class="w-12 text-center bg-white border border-amber-300 rounded-lg py-0.5 font-mono font-bold text-slate-800">
+                        <span>m</span>
+                        <input type="number" id="custom-sec-input" min="0" max="59" step="5" value="0" onchange="applyCustomDurationInputs()"
+                            class="w-12 text-center bg-white border border-amber-300 rounded-lg py-0.5 font-mono font-bold text-slate-800">
+                        <span>s</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button onclick="adjustTimerSeconds(-30)" class="px-2 py-0.5 rounded-lg bg-white hover:bg-rose-100 border border-slate-300 text-xs font-bold text-slate-700 cursor-pointer">-30s</button>
+                        <button onclick="adjustTimerSeconds(30)" class="px-2 py-0.5 rounded-lg bg-white hover:bg-emerald-100 border border-slate-300 text-xs font-bold text-slate-700 cursor-pointer">+30s</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DASHBOARD METRICHE & TIMER VISIVO -->
+        <section class="mt-3 grid grid-cols-2 sm:grid-cols-5 gap-2.5 items-center">
+            
+            <div class="col-span-2 sm:col-span-1 bg-white border-2 border-cyan-300 rounded-3xl p-2.5 flex items-center justify-center gap-3 shadow-md">
+                <div class="relative w-14 h-14 flex items-center justify-center">
+                    <svg class="w-14 h-14 transform -rotate-90" viewBox="0 0 60 60">
+                        <circle cx="30" cy="30" r="25" stroke="#e2e8f0" stroke-width="6" fill="none" />
+                        <circle id="timer-ring" cx="30" cy="30" r="25" stroke="#06b6d4" stroke-width="6" fill="none"
+                            stroke-dasharray="157.08" stroke-dashoffset="0" stroke-linecap="round" class="transition-all duration-300" />
+                    </svg>
+                    <span id="timer-display" class="absolute font-mono font-bold text-sm text-slate-800">03:00</span>
+                </div>
+                <div class="sm:hidden">
+                    <div id="timer-mode-label-mobile" class="text-xs text-cyan-700 font-bold uppercase">Timer Attivo</div>
+                    <div class="text-xs text-slate-500">Digita per avviare!</div>
+                </div>
+            </div>
+
+            <div class="bg-white border-2 border-violet-200 rounded-3xl p-3 text-center shadow-md">
+                <div class="text-[11px] font-bold uppercase tracking-wider text-violet-600">Velocità (WPM)</div>
+                <div id="stat-wpm" class="font-display text-2xl sm:text-3xl font-bold text-slate-800">0</div>
+                <div class="text-[11px] text-slate-500 font-medium"><span id="stat-cpm">0</span> car/min</div>
+            </div>
+
+            <div class="bg-white border-2 border-emerald-200 rounded-3xl p-3 text-center shadow-md">
+                <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-600">Precisione</div>
+                <div id="stat-accuracy" class="font-display text-2xl sm:text-3xl font-bold text-slate-800">100%</div>
+                <div class="text-[11px] text-slate-500 font-medium"><span id="stat-errors">0</span> errori</div>
+            </div>
+
+            <div class="bg-white border-2 border-pink-200 rounded-3xl p-3 text-center shadow-md">
+                <div class="text-[11px] font-bold uppercase tracking-wider text-pink-600">Serie Combo</div>
+                <div id="stat-streak" class="font-display text-2xl sm:text-3xl font-bold text-slate-800">0 🔥</div>
+                <div class="text-[11px] text-slate-500 font-medium">Record: <span id="stat-max-streak">0</span></div>
+            </div>
+
+            <div class="bg-gradient-to-br from-amber-100 via-yellow-50 to-pink-100 border-2 border-amber-300 rounded-3xl p-3 text-center shadow-md">
+                <div class="text-[11px] font-bold uppercase tracking-wider text-amber-700">Punti Bonus XP</div>
+                <div id="stat-points" class="font-display text-2xl sm:text-3xl font-bold text-amber-600">0</div>
+                <div class="text-[11px] text-amber-800 font-medium"><span id="stat-phrases">0</span> completati</div>
+            </div>
+        </section>
+
+        <!-- BARRA LINEARE TEMPO -->
+        <div class="mt-2.5 w-full h-3 bg-white rounded-full overflow-hidden border border-slate-200 p-0.5 shadow-inner">
+            <div id="timer-linear-bar" class="h-full w-full rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-pink-500 transition-all duration-300"></div>
+        </div>
+
+        <!-- AREA PRINCIPALE DI DIGITAZIONE -->
+        <main class="mt-3 relative">
+            <div id="typing-card" onclick="focusTypingInput()" 
+                class="bg-white border-2 border-cyan-300 hover:border-violet-400 rounded-3xl p-5 sm:p-7 shadow-xl shadow-violet-500/10 transition cursor-text relative overflow-hidden">
+                
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3 pb-3 border-b-2 border-slate-100">
+                    <div class="flex items-center gap-2.5">
+                        <span id="topic-emoji" class="text-2xl bg-cyan-50 w-10 h-10 rounded-2xl flex items-center justify-center border border-cyan-200">🌅</span>
+                        <div>
+                            <span id="topic-title" class="text-xs font-bold uppercase tracking-wider text-violet-600 block">Daily Routine • Morning</span>
+                            <span id="italian-hint" class="text-xs sm:text-sm text-slate-600 font-medium">🇮🇹 "Mi sveglio alle sette ogni mattina."</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 relative z-20">
+                        <span id="status-pill" class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                            ✨ Inizia a digitare per partire!
+                        </span>
+                        <button onclick="finishSessionEarly(event)" title="Termina ora e genera report"
+                            class="px-3 py-1.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-xs font-bold text-emerald-800 border border-emerald-300 transition cursor-pointer">
+                            🏁 Concludi & Report
+                        </button>
+                        <button onclick="resetExercise(event)" title="Ricomincia"
+                            class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 border border-slate-300 transition cursor-pointer">
+                            🔄 Reset
+                        </button>
+                    </div>
+                </div>
+
+                <div id="prompt-scroll-wrapper" class="max-h-44 overflow-y-auto pr-2">
+                    <div id="prompt-display" class="font-mono text-xl sm:text-2xl md:text-[26px] leading-relaxed tracking-wide select-none flex flex-wrap content-start break-words text-slate-700"></div>
+                </div>
+
+                <input type="text" id="hidden-typing-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                    class="opacity-0 absolute inset-0 w-full h-full cursor-text z-10" aria-label="Area di digitazione">
+
+                <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block w-3 h-3 rounded-full bg-yellow-300 border border-amber-500"></span>
+                        <span>Segui il cursore giallo e il tasto evidenziato sulla tastiera virtuale.</span>
+                    </div>
+                    <div class="flex items-center gap-3 relative z-20">
+                        <span id="progress-counter-text" class="font-mono font-bold text-violet-600">0 / 0 car.</span>
+                        <button onclick="skipPrompt(event)" class="text-cyan-600 hover:text-cyan-800 underline font-bold cursor-pointer">
+                            Prossimo elemento ⏭️
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- TASTIERA VIRTUALE INTERATTIVA -->
+        <section id="virtual-keyboard-section" class="mt-3 bg-white/90 backdrop-blur-md border-2 border-cyan-200 rounded-3xl p-3 shadow-md">
+            <div class="max-w-3xl mx-auto flex flex-col gap-1.5 select-none text-slate-700">
+                <div class="grid grid-cols-11 gap-1 sm:gap-1.5">
+                    <div data-key="1" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">1</div>
+                    <div data-key="2" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">2</div>
+                    <div data-key="3" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">3</div>
+                    <div data-key="4" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">4</div>
+                    <div data-key="5" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">5</div>
+                    <div data-key="6" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">6</div>
+                    <div data-key="7" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">7</div>
+                    <div data-key="8" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">8</div>
+                    <div data-key="9" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">9</div>
+                    <div data-key="0" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">0</div>
+                    <div data-key="'" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">'</div>
+                </div>
+                <div class="grid grid-cols-10 gap-1 sm:gap-1.5 px-2">
+                    <div data-key="q" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">Q</div>
+                    <div data-key="w" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">W</div>
+                    <div data-key="e" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">E</div>
+                    <div data-key="r" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">R</div>
+                    <div data-key="t" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">T</div>
+                    <div data-key="y" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">Y</div>
+                    <div data-key="u" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">U</div>
+                    <div data-key="i" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">I</div>
+                    <div data-key="o" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">O</div>
+                    <div data-key="p" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">P</div>
+                </div>
+                <div class="grid grid-cols-10 gap-1 sm:gap-1.5 px-4">
+                    <div data-key="a" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">A</div>
+                    <div data-key="s" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">S</div>
+                    <div data-key="d" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">D</div>
+                    <div data-key="f" class="v-key bg-amber-50 border-2 border-amber-400 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-bold uppercase underline">F</div>
+                    <div data-key="g" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">G</div>
+                    <div data-key="h" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">H</div>
+                    <div data-key="j" class="v-key bg-amber-50 border-2 border-amber-400 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-bold uppercase underline">J</div>
+                    <div data-key="k" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">K</div>
+                    <div data-key="l" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">L</div>
+                    <div data-key=":" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">:</div>
+                </div>
+                <div class="grid grid-cols-11 gap-1 sm:gap-1.5 px-1">
+                    <div data-key="shift" class="v-key col-span-2 bg-violet-100 border border-violet-300 text-violet-800 rounded-xl py-1.5 text-center font-mono text-[11px] sm:text-xs font-bold">⇧ SHIFT</div>
+                    <div data-key="z" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">Z</div>
+                    <div data-key="x" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">X</div>
+                    <div data-key="c" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">C</div>
+                    <div data-key="v" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">V</div>
+                    <div data-key="b" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">B</div>
+                    <div data-key="n" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">N</div>
+                    <div data-key="m" class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold uppercase">M</div>
+                    <div data-key="," class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">,</div>
+                    <div data-key="." class="v-key bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-sm font-semibold">.</div>
+                </div>
+                <div class="grid grid-cols-12 gap-1.5 mt-0.5">
+                    <div class="col-span-3"></div>
+                    <div data-key=" " class="v-key col-span-6 bg-cyan-50 border border-cyan-300 rounded-xl py-1.5 text-center font-mono text-xs font-bold text-cyan-800 tracking-widest">SPAZIO</div>
+                    <div data-key="!" class="v-key col-span-1 bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-semibold">!</div>
+                    <div data-key="?" class="v-key col-span-1 bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-semibold">?</div>
+                    <div data-key="-" class="v-key col-span-1 bg-slate-100 border border-slate-300 rounded-xl py-1.5 text-center font-mono text-xs sm:text-semibold">-</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="mt-3 text-center text-xs text-slate-500 font-medium pb-2">
+            Daily Routine Typing Pro • Piattaforma Didattica di Inglese & Tecnologia per la Scuola Secondaria di I Grado
+        </footer>
+    </div>
+
+    <!-- MODALE RISULTATI -->
+    <div id="results-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white border-4 border-cyan-300 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl animate-pop my-auto">
+            
+            <div class="text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-amber-300 via-pink-400 to-cyan-400 text-3xl shadow-lg mb-2 animate-bounce">
+                    🏆
+                </div>
+                <h2 class="font-display text-3xl sm:text-4xl font-bold bg-gradient-to-r from-violet-600 via-pink-500 to-cyan-500 bg-clip-text text-transparent">
+                    Sessione Completata!
+                </h2>
+                <p id="result-grade-comment" class="text-sm sm:text-base text-emerald-700 font-bold mt-1">
+                    Valutazione: Ottimo lavoro!
+                </p>
+            </div>
+
+            <div class="mt-4 bg-violet-50 rounded-2xl p-3 flex flex-col sm:flex-row items-center justify-between gap-2 border border-violet-200">
+                <label for="modal-student-name" class="text-xs font-bold uppercase tracking-wider text-violet-700">
+                    👤 Studente per il Report:
+                </label>
+                <input type="text" id="modal-student-name" placeholder="Inserisci Nome, Cognome e Classe..."
+                    class="w-full sm:w-2/3 bg-white border border-violet-300 rounded-xl px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:border-violet-500">
+            </div>
+
+            <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <div class="bg-violet-50 border border-violet-200 rounded-2xl p-3 text-center">
+                    <div class="text-[11px] uppercase font-bold text-violet-600">Velocità</div>
+                    <div id="final-wpm" class="font-display text-2xl font-bold text-slate-800 mt-0.5">0 WPM</div>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 text-center">
+                    <div class="text-[11px] uppercase font-bold text-emerald-600">Precisione</div>
+                    <div id="final-accuracy" class="font-display text-2xl font-bold text-slate-800 mt-0.5">100%</div>
+                </div>
+                <div class="bg-pink-50 border border-pink-200 rounded-2xl p-3 text-center">
+                    <div class="text-[11px] uppercase font-bold text-pink-600">Max Combo</div>
+                    <div id="final-streak" class="font-display text-2xl font-bold text-slate-800 mt-0.5">0</div>
+                </div>
+                <div class="bg-amber-50 border border-amber-300 rounded-2xl p-3 text-center">
+                    <div class="text-[11px] uppercase font-bold text-amber-700">Punteggio XP</div>
+                    <div id="final-score" class="font-display text-2xl font-bold text-amber-600 mt-0.5">0</div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-pink-600 mb-2 flex items-center gap-1.5">
+                    <span>🎖️</span> Premi Bonus & Trofei Sbloccati:
+                </h3>
+                <div id="badges-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1"></div>
+            </div>
+
+            <div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-2.5">
+                <button onclick="downloadReport()" 
+                    class="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-500 hover:from-emerald-300 hover:to-cyan-400 text-slate-900 font-display font-bold text-base shadow-lg shadow-cyan-500/25 transform hover:scale-[1.02] transition cursor-pointer">
+                    <span>📥</span>
+                    <span>Scarica Report (.html)</span>
+                </button>
+
+                <button onclick="downloadTxtReport()" title="Scarica versione testo"
+                    class="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 font-bold text-sm transition cursor-pointer">
+                    <span>📄</span>
+                    <span>.TXT</span>
+                </button>
+
+                <button onclick="closeModalAndRestart()" 
+                    class="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-violet-600 to-pink-500 hover:from-violet-500 hover:to-pink-400 text-white font-display font-bold text-base shadow-lg shadow-pink-500/25 transform hover:scale-[1.02] transition cursor-pointer">
+                    <span>🔄</span>
+                    <span>Nuova Prova</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE STORICO -->
+    <div id="history-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white border-4 border-amber-300 rounded-3xl max-w-xl w-full p-6 shadow-2xl animate-pop">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h2 class="font-display text-2xl font-bold text-amber-600 flex items-center gap-2">
+                    <span>📊</span> Storico Progressi (Ultimi 15)
+                </h2>
+                <button onclick="closeHistoryModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold cursor-pointer">✕</button>
+            </div>
+            <div id="history-list-container" class="mt-4 max-h-72 overflow-y-auto space-y-2 text-sm"></div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center">
+                <button onclick="clearHistory()" class="text-xs font-bold text-rose-500 hover:underline cursor-pointer">🗑️ Cancella Storico</button>
+                <button onclick="closeHistoryModal()" class="px-5 py-2 rounded-xl bg-amber-400 text-slate-900 font-display font-bold text-sm cursor-pointer">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CONTENT_BANK = {
+            routine: {
+                easy: [
+                    { topic: "Morning Wake-up", emoji: "⏰", en: "I wake up at seven o'clock every morning.", it: "Mi sveglio alle sette ogni mattina." },
+                    { topic: "Personal Hygiene", emoji: "🪥", en: "I wash my face and brush my teeth.", it: "Mi lavo la faccia e mi lavo i denti." },
+                    { topic: "Breakfast Time", emoji: "🥐", en: "I eat toast and drink orange juice for breakfast.", it: "Mangio pane tostato e bevo succo d'arancia a colazione." },
+                    { topic: "Going to School", emoji: "🚌", en: "I go to school by bus with my best friend.", it: "Vado a scuola in autobus con il mio migliore amico." },
+                    { topic: "Lunch Break", emoji: "🍝", en: "I have lunch at home at half past one.", it: "Pranzo a casa all'una e mezza." },
+                    { topic: "Homework", emoji: "✏️", en: "In the afternoon, I do my homework in my room.", it: "Nel pomeriggio faccio i compiti nella mia camera." },
+                    { topic: "Dinner & Bedtime", emoji: "🌙", en: "We have dinner at eight and I go to bed at ten.", it: "Ceniamo alle otto e vado a letto alle dieci." }
+                ],
+                medium: [
+                    { topic: "Morning Habits", emoji: "🌅", en: "When my alarm clock rings at 7:00, I usually get up immediately and get dressed.", it: "Quando la sveglia suona alle 7:00, di solito mi alzo subito e mi vesto." },
+                    { topic: "Healthy Breakfast", emoji: "🥣", en: "Before leaving home, I always have a healthy breakfast with cereal, milk, and fresh fruit.", it: "Prima di uscire di casa faccio sempre una colazione sana con cereali, latte e frutta." },
+                    { topic: "School Timetable", emoji: "🏫", en: "Lessons start at 8:15 and we have six subjects, including Science, History, and English.", it: "Le lezioni iniziano alle 8:15 e abbiamo sei materie tra cui Scienze, Storia e Inglese." },
+                    { topic: "Afternoon Routine", emoji: "🎧", en: "After doing my homework, I often listen to music or play basketball with my friends.", it: "Dopo aver fatto i compiti ascolto spesso musica o gioco a basket con i miei amici." },
+                    { topic: "Weekend Routine", emoji: "🎉", en: "On Sundays, I never wake up early because I love relaxing until ten o'clock!", it: "La domenica non mi sveglio mai presto perché adoro rilassarmi fino alle dieci!" }
+                ],
+                hard: [
+                    { topic: "Busy School Morning", emoji: "🚀", en: "Although I am not a morning person, I always set my alarm for 6:45 a.m. so I have enough time to pack my schoolbag and check my timetable.", it: "Sebbene non sia mattiniero, punto sempre la sveglia alle 6:45 per avere tempo di preparare lo zaino." },
+                    { topic: "Digital & Study Balance", emoji: "💻", en: "Since this is my final year of middle school, I organize my daily schedule carefully to balance homework, oral presentations, and relaxing hobbies.", it: "Dato che è il mio ultimo anno di medie, organizzo con cura la giornata per bilanciare compiti e hobby." },
+                    { topic: "Evening Habits", emoji: "📚", en: "In the evening, I try not to spend too much time scrolling on my smartphone; instead, I prepare my clothes for the next day and read a novel.", it: "La sera cerco di non stare troppo sullo smartphone; preparo invece i vestiti per il giorno dopo e leggo un romanzo." }
+                ]
+            },
+            dialogues: {
+                easy: [
+                    { topic: "Chat: Morning Routine", emoji: "💬", en: "Alex: Hi Maya! What time do you get up? Maya: I get up at seven, and you?", it: "Alex: Ciao Maya! A che ora ti alzi? Maya: Mi alzo alle sette, e tu?" },
+                    { topic: "Chat: Going to School", emoji: "🚌", en: "Leo: Do you walk to school? Sara: No, I take the bus with my brother.", it: "Leo: Vai a scuola a piedi? Sara: No, prendo l'autobus con mio fratello." },
+                    { topic: "Chat: After School", emoji: "⚽", en: "Tom: What do you do after lunch? Emma: I do my homework and play tennis!", it: "Tom: Cosa fai dopo pranzo? Emma: Faccio i compiti e gioco a tennis!" }
+                ],
+                medium: [
+                    { topic: "Dialogue: School Break", emoji: "🥪", en: "Liam: Are you ready for the English test? Chloe: Yes! I studied yesterday afternoon after basketball practice.", it: "Liam: Sei pronta per la verifica di inglese? Chloe: Sì! Ho studiato ieri pomeriggio dopo allenamento." },
+                    { topic: "Dialogue: Weekend Plans", emoji: "🎬", en: "Noah: How often do you go to the cinema? Mia: Usually twice a month on Saturday evening!", it: "Noah: Quanto spesso vai al
