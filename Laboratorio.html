@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piattaforma Didattica Interattiva - Percorso LearningApps</title>
+    <!-- Caricamento Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Caricamento Font Plus Jakarta Sans & Inter da Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        display: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        pastel: {
+                            bg: '#FAFDFB',
+                            sky: '#E0F7FA',
+                            skyAccent: '#00838F',
+                            lavender: '#EDE9FE',
+                            lavenderAccent: '#7C3AED',
+                            peach: '#FFE4E6',
+                            peachAccent: '#F43F5E',
+                            mint: '#DCFCE7',
+                            mintAccent: '#16A34A',
+                            rose: '#FFE4E6',
+                            roseAccent: '#E11D48',
+                            amber: '#FEF9C3',
+                            amberAccent: '#CA8A04'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Stili specifici per la stampa del Report */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #report-printable-area, #report-printable-area * {
+                visibility: visible;
+            }
+            #report-printable-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 20px;
+                background: white !important;
+                box-shadow: none !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        /* Animazioni fluide */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Sfondo delicato crema/azzurro ghiaccio morbidissimo per prima media */
+        .bg-soft-canvas {
+            background-color: #F7FCFA;
+            background-image: radial-gradient(#BAE6FD 0.85px, transparent 0.85px);
+            background-size: 22px 22px;
+        }
+    </style>
+</head>
+<body class="bg-soft-canvas text-slate-800 font-sans min-h-screen flex flex-col selection:bg-teal-200 selection:text-teal-950">
+
+    <!-- Notifica Toast personalizzata (sostituisce alert) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- HEADER / BARRA DI NAVIGAZIONE SUPERIORE -->
+    <header class="bg-white/95 backdrop-blur-md border-b border-teal-100 sticky top-0 z-30 shadow-xs no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <!-- Brand / Titolo -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-400 text-white flex items-center justify-center shadow-sm shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-display text-base sm:text-lg font-extrabold text-slate-800 leading-tight">Laboratorio Interattivo</h1>
+                    <p class="text-xs text-teal-700 font-medium hidden sm:block">Percorso Didattico • Prima Media</p>
+                </div>
+            </div>
+
+            <!-- Info Studente Attivo (visibile dopo registrazione) -->
+            <div id="header-student-badge" class="hidden md:flex items-center gap-2.5 bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 rounded-full text-sm">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="font-semibold text-emerald-950" id="header-student-name">Studente</span>
+                <span class="text-emerald-300">•</span>
+                <span class="text-emerald-800 font-bold" id="header-student-class">Classe</span>
+            </div>
+
+            <!-- Selettore Area (Alunno / Docente) -->
+            <nav class="flex items-center gap-1.5 bg-teal-50/80 p-1 rounded-2xl border border-teal-100">
+                <button id="nav-student-btn" onclick="switchMainArea('student')" class="px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 bg-white text-teal-700 shadow-xs">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    <span>Area Alunno</span>
+                </button>
+                <button id="nav-teacher-btn" onclick="switchMainArea('teacher')" class="px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                    <span>Area Docente</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- CONTENUTO PRINCIPALE -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+        <!-- ===================================================================== -->
+        <!-- 1. AREA ALUNNO                                                        -->
+        <!-- ===================================================================== -->
+        <section id="area-student" class="fade-in">
+            
+            <!-- STEP 1A: Modulo Registrazione Dati Alunno -->
+            <div id="student-login-card" class="max-w-lg mx-auto bg-white rounded-3xl shadow-md shadow-teal-100/70 border border-teal-100 overflow-hidden mt-4 sm:mt-8">
+                <div class="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 px-6 py-7 text-white">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/25 backdrop-blur-xs text-xs font-bold mb-3">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Spazio Studente • Benvenuti in Prima Media!
+                    </div>
+                    <h2 class="font-display text-2xl font-extrabold">Ciao! Pronto a metterti in gioco?</h2>
+                    <p class="text-white/95 text-sm mt-1">Scrivi il tuo nome, cognome e la tua classe per iniziare le tre attività interattive.</p>
+                </div>
+
+                <form id="student-registration-form" onsubmit="handleStudentStart(event)" class="p-6 sm:p-8 space-y-5">
+                    <div>
+                        <label for="input-nome" class="block text-sm font-semibold text-slate-700 mb-1.5">Nome <span class="text-rose-500">*</span></label>
+                        <input type="text" id="input-nome" required placeholder="Es. Leo" autocomplete="given-name"
+                            class="w-full px-4 py-3 rounded-2xl border border-teal-200/80 bg-teal-50/20 focus:bg-white focus:border-teal-400 focus:ring-4 focus:ring-teal-100 outline-none transition text-slate-800">
+                    </div>
+
+                    <div>
+                        <label for="input-cognome" class="block text-sm font-semibold text-slate-700 mb-1.5">Cognome <span class="text-rose-500">*</span></label>
+                        <input type="text" id="input-cognome" required placeholder="Es. Rossi" autocomplete="family-name"
+                            class="w-full px-4 py-3 rounded-2xl border border-teal-200/80 bg-teal-50/20 focus:bg-white focus:border-teal-400 focus:ring-4 focus:ring-teal-100 outline-none transition text-slate-800">
+                    </div>
+
+                    <div>
+                        <label for="input-classe" class="block text-sm font-semibold text-slate-700 mb-1.5">Classe e Sezione <span class="text-rose-500">*</span></label>
+                        <input type="text" id="input-classe" required placeholder="Es. 1ª B"
+                            class="w-full px-4 py-3 rounded-2xl border border-teal-200/80 bg-teal-50/20 focus:bg-white focus:border-teal-400 focus:ring-4 focus:ring-teal-100 outline-none transition text-slate-800">
+                    </div>
+
+                    <!-- Riepilogo regole impostate dal docente -->
+                    <div class="bg-amber-50/90 rounded-2xl p-4 border border-amber-200 text-xs text-slate-700 space-y-1.5">
+                        <p class="font-bold text-amber-900 flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Come funziona il percorso:
+                        </p>
+                        <p id="login-rule-order">• Modalità di svolgimento: <strong>Caricamento...</strong></p>
+                        <p id="login-rule-timer">• Gestione del tempo: <strong>Caricamento...</strong></p>
+                    </div>
+
+                    <button type="submit" class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 active:scale-[0.99] text-white font-bold shadow-md shadow-teal-200/70 transition flex items-center justify-center gap-2 text-base">
+                        <span>Inizia le Attività</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+
+            <!-- STEP 1B: Workspace Esercizi a 3 Schede (visibile dopo registrazione) -->
+            <div id="student-workspace" class="hidden space-y-6">
+                
+                <!-- Barra informativa studente + Tasti rapidi (Interrompi Sessione / Report) -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-3xl border border-teal-100 shadow-xs">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-100 via-teal-100 to-cyan-100 border border-teal-200 text-teal-800 font-display font-extrabold flex items-center justify-center shrink-0 text-base" id="workspace-avatar">
+                            ST
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="font-display font-bold text-slate-900 text-base" id="workspace-student-fullname">Nome Cognome</span>
+                                <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold" id="workspace-student-class">Classe</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-0.5" id="workspace-mode-indicator">Modalità di svolgimento attiva</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2.5 self-start md:self-center">
+                        <button onclick="openStopConfirmModal('session')" class="px-4 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-sm font-semibold transition flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
+                            </svg>
+                            <span>Interrompi percorso</span>
+                        </button>
+
+                        <button onclick="openReportModal()" class="px-4 py-2.5 rounded-2xl bg-teal-700 hover:bg-teal-800 text-white text-sm font-semibold shadow-xs transition flex items-center gap-2">
+                            <svg class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <span>Report Finale</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- BARRA DI PROGRESSIONE LIVELLI DI DIFFICOLTÀ CRESCENTI -->
+                <div class="bg-white p-4 sm:p-5 rounded-3xl border border-teal-100/90 shadow-xs space-y-3" id="difficulty-roadmap-card">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-7 h-7 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-sm font-bold">★</span>
+                            <h3 class="font-display font-bold text-slate-800 text-sm sm:text-base">Percorso di Difficoltà Crescente</h3>
+                        </div>
+                        <span class="text-xs font-semibold text-teal-700 bg-teal-50 px-3 py-1 rounded-full border border-teal-100" id="difficulty-progress-label">
+                            Livello attuale: Base (★☆☆)
+                        </span>
+                    </div>
+
+                    <!-- Stepper visivo Base -> Intermedio -> Avanzato -->
+                    <div class="grid grid-cols-3 gap-2 sm:gap-4 items-center pt-1" id="difficulty-stepper">
+                        <!-- Generato dinamicamente da JS -->
+                    </div>
+
+                    <!-- Suggerimento contestuale in base al livello -->
+                    <div class="bg-sky-50/70 border border-sky-100 rounded-2xl px-4 py-2.5 flex items-start sm:items-center gap-2.5 text-xs text-slate-700">
+                        <span class="px-2 py-0.5 rounded-lg bg-sky-100 text-sky-800 font-bold shrink-0">Consiglio</span>
+                        <span id="difficulty-contextual-tip">Livello Base: osserva bene gli esempi e procedi con calma, è il tuo riscaldamento!</span>
+                    </div>
+                </div>
+
+                <!-- NAVIGAZIONE A 3 SCHEDE (TABS CON COLORI PASTELLO VIVACI PER PRIMA MEDIA) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5" id="exercise-tabs-container">
+                    <!-- Generato dinamicamente da JS -->
+                </div>
+
+                <!-- CONTENITORE SINGOLA SCHEDA ATTIVA -->
+                <div class="bg-white rounded-3xl border border-teal-100/90 shadow-sm overflow-hidden">
+                    
+                    <!-- Intestazione Scheda + Timer Differenziato -->
+                    <div id="active-card-header" class="p-5 sm:p-6 border-b border-emerald-100 bg-emerald-50/70 flex flex-col lg:flex-row lg:items-center justify-between gap-4 transition-colors">
+                        <div class="space-y-1.5">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="px-3 py-1 rounded-full bg-emerald-600 text-white text-xs font-bold uppercase tracking-wider" id="active-ex-badge">Esercizio 1</span>
+                                <span id="active-ex-level-badge" class="px-3 py-1 rounded-full text-xs font-extrabold bg-white text-emerald-800 border border-emerald-200 shadow-2xs">Livello 1 — Base (★☆☆)</span>
+                                <span id="active-ex-status-pill" class="px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">In corso</span>
+                            </div>
+                            <h3 class="font-display text-xl font-bold text-slate-900 pt-0.5" id="active-ex-title">Titolo Esercizio</h3>
+                            <p class="text-xs text-slate-600 font-medium" id="active-ex-level-desc">Riscaldamento ed esplorazione guidata.</p>
+                        </div>
+
+                        <!-- Box Timer Differenziato -->
+                        <div id="timer-box" class="flex items-center gap-4 bg-white px-4 py-3 rounded-2xl border border-teal-100 shadow-xs shrink-0">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center" id="timer-icon-bg">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider" id="timer-label">Tempo Rimanente</div>
+                                <div class="font-display text-2xl font-extrabold tabular-nums text-slate-800" id="timer-display">05:00</div>
+                            </div>
+                            <div class="border-l border-slate-200 pl-3.5 text-xs text-slate-500">
+                                <div>Trascorso:</div>
+                                <div class="font-bold text-slate-700 tabular-nums" id="elapsed-display">00:00</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Riquadro Obiettivi Didattici dell'Esercizio -->
+                    <div class="px-5 sm:px-6 py-3.5 bg-amber-50/50 border-b border-amber-100/80 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs sm:text-sm">
+                        <div class="flex items-start gap-2.5">
+                            <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-[11px] shrink-0 mt-0.5">Obiettivo Primario</span>
+                            <span class="text-slate-700 font-medium" id="active-ex-obj-primary">...</span>
+                        </div>
+                        <div class="flex items-start gap-2.5">
+                            <span class="px-2.5 py-0.5 rounded-full bg-cyan-100 text-cyan-800 border border-cyan-200 font-bold text-[11px] shrink-0 mt-0.5">Obiettivo Secondario</span>
+                            <span class="text-slate-700" id="active-ex-obj-secondary">...</span>
+                        </div>
+                    </div>
+
+                    <!-- Area Iframe LearningApps + Overlay Blocco (se scaduto, interrotto o completato) -->
+                    <div class="relative bg-slate-100/80 min-h-[500px]">
+                        
+                        <!-- Overlay Tempo Scaduto -->
+                        <div id="overlay-expired" class="hidden absolute inset-0 z-20 bg-slate-900/80 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center text-white">
+                            <div class="w-16 h-16 rounded-2xl bg-amber-400/20 border border-amber-300 text-amber-300 flex items-center justify-center mb-4">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <h4 class="font-display text-2xl font-bold mb-2">Tempo Scaduto!</h4>
+                            <p class="text-slate-200 max-w-md mb-6 text-sm">Il tempo assegnato per questa attività è terminato. L'esercizio è stato bloccato e salvato nel report.</p>
+                            <div class="flex flex-wrap gap-3 justify-center">
+                                <button onclick="goToNextAvailableOrReport()" class="px-5 py-2.5 rounded-2xl bg-white text-slate-900 font-bold hover:bg-sky-50 transition text-sm">
+                                    Prosegui nel Percorso &rarr;
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Overlay Attività Interrotta dallo Studente -->
+                        <div id="overlay-stopped" class="hidden absolute inset-0 z-20 bg-slate-900/80 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center text-white">
+                            <div class="w-16 h-16 rounded-2xl bg-rose-400/20 border border-rose-300 text-rose-300 flex items-center justify-center mb-4">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
+                                </svg>
+                            </div>
+                            <h4 class="font-display text-2xl font-bold mb-2">Attività Interrotta</h4>
+                            <p class="text-slate-200 max-w-md mb-6 text-sm">Hai scelto di interrompere questo esercizio. Il timer è stato fermato e il tempo trascorso è stato registrato nel tuo Report.</p>
+                            <div class="flex flex-wrap gap-3 justify-center">
+                                <button onclick="goToNextAvailableOrReport()" class="px-5 py-2.5 rounded-2xl bg-white text-slate-900 font-bold hover:bg-sky-50 transition text-sm">
+                                    Vai al Report / Prossima Scheda
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Banner Completato (non bloccante ma informativo) -->
+                        <div id="banner-completed" class="hidden bg-emerald-100 border-b border-emerald-200 text-emerald-900 px-5 py-3 flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-2.5 text-sm font-semibold">
+                                <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span>Ottimo lavoro! Attività completata e tempo registrato.</span>
+                            </div>
+                            <button onclick="goToNextAvailableOrReport()" class="px-4 py-1.5 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition shrink-0">
+                                Avanti &rarr;
+                            </button>
+                        </div>
+
+                        <!-- IFRAME LEARNINGAPPS (Caricati una sola volta e mostrati/nascosti per non perdere lo stato) -->
+                        <div id="iframe-wrapper-0" class="w-full">
+                            <iframe src="https://learningapps.org/watch?v=paog7z6ra26" style="border:0px;width:100%;height:500px" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
+                        </div>
+                        <div id="iframe-wrapper-1" class="w-full hidden">
+                            <iframe src="https://learningapps.org/watch?v=pwtyr07ha26" style="border:0px;width:100%;height:500px" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
+                        </div>
+                        <div id="iframe-wrapper-2" class="w-full hidden">
+                            <iframe src="https://learningapps.org/watch?v=pbn7iykga26" style="border:0px;width:100%;height:500px" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
+                        </div>
+                    </div>
+
+                    <!-- Footer Controlli Esercizio: Conferma completamento, Interrompi attività & Report -->
+                    <div class="p-5 sm:p-6 bg-slate-50/90 border-t border-slate-200/80 flex flex-col lg:flex-row items-center justify-between gap-4">
+                        <div class="text-xs text-slate-600 max-w-md text-center lg:text-left leading-relaxed">
+                            <strong>Istruzioni:</strong> Quando hai finito l'esercizio su LearningApps clicca su <em>"Ho completato l'esercizio"</em>. Se invece vuoi fermarti prima, usa il tasto <em>"Interrompi attività"</em>.
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-center gap-2.5 w-full lg:w-auto">
+                            <!-- TASTO INTERROMPI ATTIVITÀ -->
+                            <button id="btn-stop-activity" onclick="openStopConfirmModal('single')" class="w-full sm:w-auto px-4 py-3 rounded-2xl bg-rose-100 hover:bg-rose-200/80 text-rose-800 border border-rose-200 font-semibold transition flex items-center justify-center gap-2 text-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
+                                </svg>
+                                <span>Interrompi attività</span>
+                            </button>
+
+                            <!-- TASTO CONFERMA COMPLETAMENTO -->
+                            <button id="btn-confirm-completion" onclick="markCurrentExerciseCompleted()" class="w-full sm:w-auto px-5 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-600 active:scale-[0.99] text-white font-bold shadow-sm shadow-emerald-200 transition flex items-center justify-center gap-2 text-sm">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span>Ho completato correttamente l'esercizio</span>
+                            </button>
+
+                            <!-- TASTO REPORT -->
+                            <button onclick="openReportModal()" class="w-full sm:w-auto px-5 py-3 rounded-2xl bg-cyan-600 hover:bg-cyan-700 text-white font-bold shadow-xs transition flex items-center justify-center gap-2 text-sm">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                <span>Report</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================================================================== -->
+        <!-- 2. AREA DOCENTE (PROTETTA DA PASSWORD)                                -->
+        <!-- ===================================================================== -->
+        <section id="area-teacher" class="hidden fade-in">
+            
+            <!-- STEP 2A: Schermata Login Password Docente -->
+            <div id="teacher-login-card" class="max-w-md mx-auto bg-white rounded-3xl shadow-md border border-teal-100 overflow-hidden mt-4 sm:mt-8">
+                <div class="bg-gradient-to-r from-teal-600 to-cyan-600 px-6 py-6 text-white">
+                    <div class="w-12 h-12 rounded-2xl bg-white/20 text-white flex items-center justify-center mb-3">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                    </div>
+                    <h2 class="font-display text-xl font-bold">Area Riservata Docente</h2>
+                    <p class="text-teal-50 text-sm mt-1">Inserisci la password per gestire tempi, ordine delle schede e obiettivi didattici.</p>
+                </div>
+
+                <form onsubmit="handleTeacherLogin(event)" class="p-6 space-y-4">
+                    <div>
+                        <label for="teacher-password-input" class="block text-sm font-semibold text-slate-700 mb-1.5">Password Docente</label>
+                        <input type="password" id="teacher-password-input" required placeholder="Inserisci password..."
+                            class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 focus:border-teal-400 focus:ring-4 focus:ring-teal-100 outline-none transition">
+                        <p id="teacher-login-error" class="hidden text-xs text-rose-600 font-medium mt-1.5">Password non corretta. Riprova.</p>
+                    </div>
+
+                    <div id="default-password-hint-box" class="bg-amber-50 border border-amber-200/80 rounded-2xl p-3 text-xs text-amber-900 flex items-center justify-between">
+                        <span>Password predefinita:</span>
+                        <code class="font-mono font-bold bg-amber-100 px-2.5 py-0.5 rounded-lg" id="hint-password-display">docente2026</code>
+                    </div>
+
+                    <div class="flex gap-3 pt-2">
+                        <button type="button" onclick="switchMainArea('student')" class="w-1/3 py-2.5 px-4 rounded-2xl border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition text-sm">
+                            Annulla
+                        </button>
+                        <button type="submit" class="w-2/3 py-2.5 px-4 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-semibold shadow-xs transition text-sm">
+                            Accedi al Pannello
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- STEP 2B: Pannello di Configurazione Docente -->
+            <div id="teacher-dashboard" class="hidden space-y-6">
+                
+                <!-- Header Pannello Docente -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-100 text-violet-800 text-xs font-bold uppercase tracking-wider mb-1">
+                            Pannello di Controllo
+                        </span>
+                        <h2 class="font-display text-2xl font-bold text-slate-900">Configurazione Percorso Didattico</h2>
+                        <p class="text-sm text-slate-500">Le impostazioni salvate vengono applicate subito all'Area Alunno.</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <button onclick="resetStudentSession()" class="px-4 py-2.5 rounded-2xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-sm font-semibold transition flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            <span>Reset Sessione Alunno</span>
+                        </button>
+                        <button onclick="logoutTeacher()" class="px-4 py-2.5 rounded-2xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-semibold transition">
+                            Esci / Blocca
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Impostazioni Generali: Ordine Sequenziale & Sicurezza -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    
+                    <!-- Card Ordine di Risoluzione -->
+                    <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between gap-4 mb-3">
+                                <h3 class="font-display text-lg font-bold text-slate-900 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
+                                    </svg>
+                                    Ordine di Risoluzione App
+                                </h3>
+                                <!-- Toggle Switch -->
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="cfg-sequential-order" class="sr-only peer" checked>
+                                    <div class="w-12 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-violet-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-600"></div>
+                                </label>
+                            </div>
+                            <p class="text-sm text-slate-600 leading-relaxed">
+                                Se attivo (<strong>Modalità Sequenziale</strong>), lo studente deve risolvere correttamente la prima app per sbloccare la seconda, e la seconda per sbloccare la terza. Se disattivato, le tre schede sono liberamente accessibili in qualsiasi ordine.
+                            </p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-slate-100 text-xs font-semibold text-violet-700" id="cfg-order-status-text">
+                            Stato attuale: Sequenziale obbligatorio (1 &rarr; 2 &rarr; 3)
+                        </div>
+                    </div>
+
+                    <!-- Card Gestione Timer Globale & Cambio Password -->
+                    <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-5">
+                        <div>
+                            <div class="flex items-center justify-between gap-4 mb-2">
+                                <h3 class="font-display text-lg font-bold text-slate-900 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Abilita Limite di Tempo
+                                </h3>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="cfg-timer-enabled" class="sr-only peer" checked>
+                                    <div class="w-12 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-violet-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-600"></div>
+                                </label>
+                            </div>
+                            <p class="text-xs text-slate-500">Attiva o disattiva il conto alla rovescia differenziato per le 3 attività (il cronometro di durata resta comunque attivo per il report).</p>
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-100">
+                            <label for="cfg-new-password" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Cambia Password Docente (Segreta)</label>
+                            <div class="flex gap-2">
+                                <input type="password" id="cfg-new-password" placeholder="Nuova password segreta..." autocomplete="new-password" class="w-full px-3.5 py-2 rounded-2xl border border-slate-200 text-sm focus:border-violet-400 outline-none">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configurazione Dettagliata per ciascuna delle 3 App -->
+                <div class="space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
+                        <h3 class="font-display text-lg font-bold text-slate-900">Configurazione Singole Attività, Livelli di Difficoltà, Timer e Obiettivi</h3>
+                        <button type="button" onclick="applyProgressiveTimers()" class="self-start sm:self-auto px-3.5 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200/80 text-amber-900 border border-amber-200 text-xs font-bold transition flex items-center gap-1.5">
+                            <span>★</span>
+                            <span>Imposta tempi crescenti (5m → 7m → 10m)</span>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" id="teacher-apps-config-container">
+                        <!-- Generato dinamicamente da JS -->
+                    </div>
+                </div>
+
+                <!-- Barra Salvataggio Impostazioni -->
+                <div class="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <button type="button" onclick="restoreDefaultConfig()" class="text-sm text-slate-500 hover:text-slate-800 font-medium underline">
+                        Ripristina valori predefiniti
+                    </button>
+                    <button type="button" onclick="saveTeacherConfig()" class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-violet-600 hover:bg-violet-700 active:scale-[0.99] text-white font-bold shadow-md shadow-violet-200 transition flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                        </svg>
+                        <span>Salva Impostazioni</span>
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ===================================================================== -->
+    <!-- MODALE DI CONFERMA INTERRUZIONE ATTIVITÀ / PERCORSO                   -->
+    <!-- ===================================================================== -->
+    <div id="stop-confirm-modal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs p-4 flex items-center justify-center">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-xl border border-rose-100 space-y-5 fade-in">
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-display text-lg font-bold text-slate-900" id="stop-modal-title">Interrompere questa attività?</h3>
+                    <p class="text-sm text-slate-600 mt-1 leading-relaxed" id="stop-modal-desc">
+                        Se interrompi adesso, il timer si fermerà e l'esercizio verrà registrato nel Report come <strong>"Interrotto dall'alunno"</strong>. Non potrai più riprenderlo.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-end gap-2.5 pt-2">
+                <button type="button" onclick="closeStopConfirmModal()" class="w-full sm:w-auto px-4 py-2.5 rounded-2xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm transition">
+                    Continua a lavorare
+                </button>
+                <button type="button" onclick="confirmStopAction()" class="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-sm transition">
+                    Sì, interrompi ora
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODALE REPORT FINALE ALUNNO                                           -->
+    <!-- ===================================================================== -->
+    <div id="report-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs overflow-y-auto p-4 sm:p-6 flex items-start sm:items-center justify-center">
+        <div class="bg-white rounded-3xl max-w-4xl w-full shadow-2xl border border-slate-200 overflow-hidden my-auto fade-in">
+            
+            <!-- Barra azioni superiore modale (nascosta in stampa) -->
+            <div class="bg-slate-800 text-white px-6 py-4 flex items-center justify-between gap-4 no-print">
+                <div class="flex items-center gap-2.5">
+                    <svg class="w-5 h-5 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <h3 class="font-display font-bold text-base sm:text-lg">Scheda di Riepilogo e Valutazione</h3>
+                </div>
+                <button onclick="closeReportModal()" class="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-700 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Area Stampabile del Report -->
+            <div id="report-printable-area" class="p-6 sm:p-8 space-y-6 bg-white">
+                
+                <!-- Intestazione Documento -->
+                <div class="border-b-2 border-slate-800 pb-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                    <div>
+                        <div class="text-xs font-bold uppercase tracking-widest text-sky-600 mb-1">Attestazione Svolgimento Attività</div>
+                        <h2 class="font-display text-2xl font-extrabold text-slate-900">Report Percorso Didattico</h2>
+                    </div>
+                    <div class="text-sm text-slate-600 sm:text-right">
+                        <div><strong>Data:</strong> <span id="rep-date">--/--/----</span></div>
+                        <div><strong>Ora generazione:</strong> <span id="rep-time">--:--</span></div>
+                    </div>
+                </div>
+
+                <!-- Box Dati Anagrafici Alunno & Riepilogo Generale -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-sky-50/60 p-4 rounded-2xl border border-sky-100">
+                    <div>
+                        <div class="text-xs text-slate-500 uppercase font-semibold">Alunno</div>
+                        <div class="text-base font-bold text-slate-900 mt-0.5" id="rep-student-name">Nome Cognome</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 uppercase font-semibold">Classe</div>
+                        <div class="text-base font-bold text-slate-900 mt-0.5" id="rep-student-class">Classe</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 uppercase font-semibold">Esito Complessivo</div>
+                        <div class="text-base font-bold text-sky-700 mt-0.5" id="rep-summary-score">0 / 3 Completati</div>
+                    </div>
+                </div>
+
+                <!-- Dettaglio Esercizi e Obiettivi -->
+                <div class="space-y-4">
+                    <h4 class="text-sm font-bold uppercase tracking-wider text-slate-500">Dettaglio Esercizi, Tempi e Obiettivi Didattici</h4>
+                    <div id="rep-exercises-list" class="space-y-4">
+                        <!-- Generato dinamicamente da JS -->
+                    </div>
+                </div>
+
+                <!-- Note e Tempo Totale -->
+                <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs text-slate-500">
+                    <div>Modalità percorso: <strong id="rep-mode-used" class="text-slate-700">Sequenziale</strong></div>
+                    <div>Tempo totale impiegato: <strong id="rep-total-duration" class="text-slate-900 text-sm">00:00</strong></div>
+                </div>
+
+            </div>
+
+            <!-- Footer Azioni Modale (nascosto in stampa) -->
+            <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex flex-wrap items-center justify-end gap-3 no-print">
+                <button onclick="copyReportToClipboard()" class="px-4 py-2.5 rounded-2xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 font-semibold text-sm transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+                    </svg>
+                    <span>Copia Report</span>
+                </button>
+                <button onclick="window.print()" class="px-5 py-2.5 rounded-2xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm shadow-sm transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                    </svg>
+                    <span>Stampa / Salva PDF</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- JAVASCRIPT APPLICATIVO                                                -->
+    <!-- ===================================================================== -->
+    <script>
+        /**
+         * Palette pastello fresca, luminosa e riposante per ragazzi di prima media (11-12 anni):
+         * - Scheda 1: Verde mela / menta fresco (emerald) -> Livello 1 Base
+         * - Scheda 2: Giallo limone / sole tenue (amber) -> Livello 2 Intermedio
+         * - Scheda 3: Turchese acquamarina / corallo morbido (cyan + rose) -> Livello 3 Avanzato
+         */
+        const TAB_THEMES = [
+            {
+                badgeBg: 'bg-emerald-600',
+                headerBg: 'bg-emerald-50/80',
+                activeBorder: 'border-emerald-400 ring-4 ring-emerald-100 bg-emerald-50/40',
+                inactiveHover: 'hover:border-emerald-300',
+                labelColor: 'text-emerald-700',
+                timerIcon: 'bg-emerald-100 text-emerald-700',
+                levelPill: 'bg-white text-emerald-800 border-emerald-200',
+                stepActive: 'bg-emerald-500 text-white border-emerald-500 shadow-xs',
+                stepDone: 'bg-emerald-100 text-emerald-800 border-emerald-300'
+            },
+            {
+                badgeBg: 'bg-amber-500',
+                headerBg: 'bg-amber-50/85',
+                activeBorder: 'border-amber-400 ring-4 ring-amber-100 bg-amber-50/45',
+                inactiveHover: 'hover:border-amber-300',
+                labelColor: 'text-amber-700',
+                timerIcon: 'bg-amber-100 text-amber-700',
+                levelPill: 'bg-white text-amber-800 border-amber-200',
+                stepActive: 'bg-amber-500 text-white border-amber-500 shadow-xs',
+                stepDone: 'bg-amber-100 text-amber-800 border-amber-300'
+            },
+            {
+                badgeBg: 'bg-gradient-to-r from-cyan-500 to-rose-400',
+                headerBg: 'bg-gradient-to-r from-cyan-50/85 to-rose-50/75',
+                activeBorder: 'border-cyan-400 ring-4 ring-cyan-100 bg-cyan-50/35',
+                inactiveHover: 'hover:border-cyan-300',
+                labelColor: 'text-cyan-700',
+                timerIcon: 'bg-cyan-100 text-cyan-700',
+                levelPill: 'bg-white text-cyan-800 border-cyan-200',
+                stepActive: 'bg-gradient-to-r from-cyan-500 to-rose-400 text-white border-cyan-500 shadow-xs',
+                stepDone: 'bg-cyan-100 text-cyan-800 border-cyan-300'
+            }
+        ];
+
+        /**
+         * Configurazione predefinita del percorso didattico con livelli di difficoltà crescenti.
+         */
+        const DEFAULT_CONFIG = {
+            password: 'docente2026',
+            isCustomPassword: false,
+            sequentialOrder: true,
+            timerEnabled: true,
+            apps: [
+                {
+                    id: 0,
+                    url: 'https://learningapps.org/watch?v=paog7z6ra26',
+                    levelLabel: 'Livello 1 — Base (★☆☆)',
+                    levelDescription: 'Riscaldamento ed esplorazione guidata.',
+                    levelTip: 'Livello Base (★☆☆): osserva con calma gli elementi e inizia a prendere confidenza con l’attività!',
+                    title: 'Esercizio 1 - Analisi e Riconoscimento',
+                    minutes: 5,
+                    seconds: 0,
+                    primaryObjective: 'Identificare e classificare correttamente gli elementi fondamentali proposti nell’attività.',
+                    secondaryObjective: 'Portare a termine la prova entro il tempo limite mantenendo precisione e concentrazione.'
+                },
+                {
+                    id: 1,
+                    url: 'https://learningapps.org/watch?v=pwtyr07ha26',
+                    levelLabel: 'Livello 2 — Intermedio (★★☆)',
+                    levelDescription: 'Applicazione e consolidamento.',
+                    levelTip: 'Livello Intermedio (★★☆): ragiona sui collegamenti logici e verifica ogni risposta prima di confermare.',
+                    title: 'Esercizio 2 - Collegamento Logico e Applicazione',
+                    minutes: 7,
+                    seconds: 0,
+                    primaryObjective: 'Stabilire relazioni logiche corrette tra concetti, definizioni e casi pratici.',
+                    secondaryObjective: 'Sviluppare autonomia operativa e capacità di autoverifica durante l’esecuzione.'
+                },
+                {
+                    id: 2,
+                    url: 'https://learningapps.org/watch?v=pbn7iykga26',
+                    levelLabel: 'Livello 3 — Avanzato (★★★)',
+                    levelDescription: 'Sfida finale e padronanza.',
+                    levelTip: 'Livello Avanzato (★★★): sei alla sfida finale! Metti in campo tutto ciò che hai imparato nei livelli precedenti.',
+                    title: 'Esercizio 3 - Sintesi e Consolidamento Finale',
+                    minutes: 10,
+                    seconds: 0,
+                    primaryObjective: 'Applicare in modo integrato le conoscenze acquisite per risolvere il compito complesso.',
+                    secondaryObjective: 'Ottimizzare i tempi di risposta dimostrando padronanza completa dell’argomento.'
+                }
+            ]
+        };
+
+        // Stato globale dell'applicazione
+        let appConfig = loadConfig();
+        let isTeacherAuthenticated = false;
+        let timerInterval = null;
+        let pendingStopMode = 'single'; // 'single' oppure 'session'
+        let studentSession = {
+            isStarted: false,
+            firstName: '',
+            lastName: '',
+            studentClass: '',
+            startDate: null,
+            activeTab: 0,
+            exercises: [
+                { status: 'in_progress', elapsedSeconds: 0, completedAt: null },
+                { status: 'not_started', elapsedSeconds: 0, completedAt: null },
+                { status: 'not_started', elapsedSeconds: 0, completedAt: null }
+            ]
+        };
+
+        function loadConfig() {
+            try {
+                const saved = localStorage.getItem('edtech_la_config_v2');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    const mergedApps = (parsed.apps && parsed.apps.length === 3)
+                        ? parsed.apps.map((app, i) => ({
+                            ...DEFAULT_CONFIG.apps[i],
+                            ...app,
+                            url: DEFAULT_CONFIG.apps[i].url
+                        }))
+                        : DEFAULT_CONFIG.apps;
+                    const hasCustomPwd = typeof parsed.isCustomPassword === 'boolean'
+                        ? parsed.isCustomPassword
+                        : (parsed.password && parsed.password !== DEFAULT_CONFIG.password);
+                    return {
+                        ...DEFAULT_CONFIG,
+                        ...parsed,
+                        isCustomPassword: hasCustomPwd,
+                        apps: mergedApps
+                    };
+                }
+            } catch (e) {
+                console.error('Errore lettura localStorage:', e);
+            }
+            return JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+        }
+
+        function persistConfig() {
+            try {
+                localStorage.setItem('edtech_la_config_v2', JSON.stringify(appConfig));
+            } catch (e) {
+                console.error('Errore salvataggio localStorage:', e);
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const colors = {
+                success: 'bg-emerald-600 text-white border-emerald-500',
+                error: 'bg-rose-600 text-white border-rose-500',
+                warning: 'bg-amber-500 text-white border-amber-400',
+                info: 'bg-slate-800 text-white border-slate-700'
+            };
+
+            toast.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-lg border text-sm font-medium flex items-center gap-2.5 transform transition-all duration-300 translate-y-2 opacity-0 ${colors[type] || colors.info}`;
+            toast.innerHTML = `<span>${message}</span>`;
+            
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function formatTime(totalSeconds) {
+            const secs = Math.max(0, Math.floor(totalSeconds));
+            const m = Math.floor(secs / 60);
+            const s = secs % 60;
+            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function getMaxSecondsForApp(index) {
+            const app = appConfig.apps[index];
+            return (parseInt(app.minutes, 10) || 0) * 60 + (parseInt(app.seconds, 10) || 0);
+        }
+
+        function switchMainArea(area) {
+            const studentSection = document.getElementById('area-student');
+            const teacherSection = document.getElementById('area-teacher');
+            const btnStudent = document.getElementById('nav-student-btn');
+            const btnTeacher = document.getElementById('nav-teacher-btn');
+
+            if (area === 'student') {
+                studentSection.classList.remove('hidden');
+                teacherSection.classList.add('hidden');
+                
+                btnStudent.className = 'px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 bg-white text-teal-700 shadow-xs';
+                btnTeacher.className = 'px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900';
+                
+                updateLoginRulesSummary();
+                if (studentSession.isStarted) {
+                    renderStudentWorkspace();
+                }
+            } else {
+                studentSection.classList.add('hidden');
+                teacherSection.classList.add('hidden');
+                teacherSection.classList.remove('hidden');
+
+                btnTeacher.className = 'px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 bg-white text-teal-700 shadow-xs';
+                btnStudent.className = 'px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900';
+
+                updatePasswordHintVisibility();
+                if (isTeacherAuthenticated) {
+                    document.getElementById('teacher-login-card').classList.add('hidden');
+                    document.getElementById('teacher-dashboard').classList.remove('hidden');
+                    populateTeacherDashboard();
+                } else {
+                    document.getElementById('teacher-login-card').classList.remove('hidden');
+                    document.getElementById('teacher-dashboard').classList.add('hidden');
+                    document.getElementById('teacher-password-input').value = '';
+                    document.getElementById('teacher-login-error').classList.add('hidden');
+                }
+            }
+        }
+
+        function updatePasswordHintVisibility() {
+            const hintBox = document.getElementById('default-password-hint-box');
+            const hintDisplay = document.getElementById('hint-password-display');
+            if (!hintBox || !hintDisplay) return;
+
+            if (appConfig.isCustomPassword || appConfig.password !== DEFAULT_CONFIG.password) {
+                hintBox.remove();
+            } else {
+                hintBox.classList.remove('hidden');
+                hintDisplay.textContent = DEFAULT_CONFIG.password;
+            }
+        }
+
+        function updateLoginRulesSummary() {
+            const orderEl = document.getElementById('login-rule-order');
+            const timerEl = document.getElementById('login-rule-timer');
+
+            orderEl.innerHTML = appConfig.sequentialOrder
+                ? `• Modalità di svolgimento: <strong class="text-sky-700">Sequenziale obbligatoria</strong> (completa ogni scheda per sbloccare la successiva).`
+                : `• Modalità di svolgimento: <strong class="text-emerald-700">Accesso libero</strong> alle tre schede.`;
+
+            if (appConfig.timerEnabled) {
+                const t1 = formatTime(getMaxSecondsForApp(0));
+                const t2 = formatTime(getMaxSecondsForApp(1));
+                const t3 = formatTime(getMaxSecondsForApp(2));
+                timerEl.innerHTML = `• Tempo limite assegnato: <strong>Es. 1 (${t1})</strong>, <strong>Es. 2 (${t2})</strong>, <strong>Es. 3 (${t3})</strong>.`;
+            } else {
+                timerEl.innerHTML = `• Tempo limite: <strong>Nessun limite di tempo</strong> (verrà comunque registrata la durata).`;
+            }
+        }
+
+        /* ===================================================================== */
+        /* LOGICA AREA ALUNNO                                                    */
+        /* ===================================================================== */
+
+        function handleStudentStart(event) {
+            event.preventDefault();
+            const nome = document.getElementById('input-nome').value.trim();
+            const cognome = document.getElementById('input-cognome').value.trim();
+            const classe = document.getElementById('input-classe').value.trim();
+
+            if (!nome || !cognome || !classe) {
+                showToast('Compila tutti i campi obbligatori per iniziare.', 'warning');
+                return;
+            }
+
+            studentSession = {
+                isStarted: true,
+                firstName: nome,
+                lastName: cognome,
+                studentClass: classe,
+                startDate: new Date(),
+                activeTab: 0,
+                exercises: [
+                    { status: 'in_progress', elapsedSeconds: 0, completedAt: null },
+                    { status: 'not_started', elapsedSeconds: 0, completedAt: null },
+                    { status: 'not_started', elapsedSeconds: 0, completedAt: null }
+                ]
+            };
+
+            document.getElementById('header-student-name').textContent = `${nome} ${cognome}`;
+            document.getElementById('header-student-class').textContent = classe;
+            document.getElementById('header-student-badge').classList.remove('hidden');
+
+            document.getElementById('workspace-avatar').textContent = `${nome.charAt(0)}${cognome.charAt(0)}`.toUpperCase();
+            document.getElementById('workspace-student-fullname').textContent = `${nome} ${cognome}`;
+            document.getElementById('workspace-student-class').textContent = `Classe ${classe}`;
+
+            document.getElementById('student-login-card').classList.add('hidden');
+            document.getElementById('student-workspace').classList.remove('hidden');
+
+            startGlobalTimerLoop();
+            renderStudentWorkspace();
+            showToast(`Buon lavoro, ${nome}!`, 'success');
+        }
+
+        function isTabLocked(index) {
+            if (!appConfig.sequentialOrder) return false;
+            if (index === 0) return false;
+            return studentSession.exercises[index - 1].status !== 'completed';
+        }
+
+        function selectExerciseTab(index) {
+            if (isTabLocked(index)) {
+                showToast(`Completa prima l'Esercizio ${index} per sbloccare questa scheda!`, 'warning');
+                return;
+            }
+
+            studentSession.activeTab = index;
+            const exState = studentSession.exercises[index];
+            if (exState.status === 'not_started') {
+                exState.status = 'in_progress';
+            }
+
+            renderStudentWorkspace();
+        }
+
+        function startGlobalTimerLoop() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                const isStudentVisible = !document.getElementById('area-student').classList.contains('hidden');
+                const isReportClosed = document.getElementById('report-modal').classList.contains('hidden');
+                const isStopModalClosed = document.getElementById('stop-confirm-modal').classList.contains('hidden');
+
+                // Pausa automatica se report o modale di conferma sono aperti
+                if (!studentSession.isStarted || !isStudentVisible || !isReportClosed || !isStopModalClosed) return;
+
+                const idx = studentSession.activeTab;
+                const exState = studentSession.exercises[idx];
+
+                // Se completato, scaduto o interrotto dallo studente, il timer resta fermo
+                if (exState.status === 'completed' || exState.status === 'expired' || exState.status === 'stopped') return;
+
+                exState.status = 'in_progress';
+                exState.elapsedSeconds += 1;
+
+                if (appConfig.timerEnabled) {
+                    const maxSecs = getMaxSecondsForApp(idx);
+                    if (maxSecs > 0 && exState.elapsedSeconds >= maxSecs) {
+                        exState.elapsedSeconds = maxSecs;
+                        exState.status = 'expired';
+                        showToast(`Tempo scaduto per l'Esercizio ${idx + 1}!`, 'error');
+                        renderStudentWorkspace();
+                        return;
+                    }
+                }
+
+                updateTimerDisplayOnly();
+            }, 1000);
+        }
+
+        function updateTimerDisplayOnly() {
+            const idx = studentSession.activeTab;
+            const exState = studentSession.exercises[idx];
+            const maxSecs = getMaxSecondsForApp(idx);
+            const theme = TAB_THEMES[idx];
+
+            const timerDisplay = document.getElementById('timer-display');
+            const elapsedDisplay = document.getElementById('elapsed-display');
+            const timerLabel = document.getElementById('timer-label');
+            const timerIconBg = document.getElementById('timer-icon-bg');
+
+            elapsedDisplay.textContent = formatTime(exState.elapsedSeconds);
+
+            if (appConfig.timerEnabled) {
+                timerLabel.textContent = 'Tempo Rimanente';
+                const remaining = Math.max(0, maxSecs - exState.elapsedSeconds);
+                timerDisplay.textContent = formatTime(remaining);
+
+                if (remaining <= 30 && exState.status === 'in_progress') {
+                    timerDisplay.className = 'font-display text-2xl font-extrabold tabular-nums text-rose-600 animate-pulse';
+                    timerIconBg.className = 'w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center';
+                } else {
+                    timerDisplay.className = 'font-display text-2xl font-extrabold tabular-nums text-slate-800';
+                    timerIconBg.className = `w-10 h-10 rounded-xl ${theme.timerIcon} flex items-center justify-center`;
+                }
+            } else {
+                timerLabel.textContent = 'Tempo Trascorso';
+                timerDisplay.textContent = formatTime(exState.elapsedSeconds);
+                timerDisplay.className = 'font-display text-2xl font-extrabold tabular-nums text-slate-800';
+                timerIconBg.className = `w-10 h-10 rounded-xl ${theme.timerIcon} flex items-center justify-center`;
+            }
+        }
+
+        function renderStudentWorkspace() {
+            const activeIdx = studentSession.activeTab;
+            const activeTheme = TAB_THEMES[activeIdx];
+
+            document.getElementById('workspace-mode-indicator').textContent = appConfig.sequentialOrder
+                ? 'Percorso Sequenziale: completa ogni livello in ordine per sbloccare quello successivo.'
+                : 'Percorso Libero: puoi affrontare i tre livelli di difficoltà nell’ordine che preferisci.';
+
+            // 0. Render Barra di Progressione "Percorso di Difficoltà Crescente"
+            const currentAppObj = appConfig.apps[activeIdx];
+            document.getElementById('difficulty-progress-label').textContent = `Livello attivo: ${currentAppObj.levelLabel}`;
+            document.getElementById('difficulty-contextual-tip').textContent = currentAppObj.levelTip || currentAppObj.levelDescription;
+
+            const stepperContainer = document.getElementById('difficulty-stepper');
+            stepperContainer.innerHTML = '';
+            appConfig.apps.forEach((app, idx) => {
+                const st = studentSession.exercises[idx];
+                const tTheme = TAB_THEMES[idx];
+                const isCurrent = idx === activeIdx;
+                const isDone = st.status === 'completed';
+
+                let stepClass = 'bg-slate-50 text-slate-500 border-slate-200';
+                let iconMark = `${idx + 1}`;
+                if (isCurrent) {
+                    stepClass = tTheme.stepActive;
+                } else if (isDone) {
+                    stepClass = tTheme.stepDone;
+                    iconMark = '✓';
+                }
+
+                const stepEl = document.createElement('div');
+                stepEl.className = `px-3 py-2 rounded-2xl border text-xs font-bold flex items-center justify-center sm:justify-start gap-2 transition-all ${stepClass}`;
+                stepEl.innerHTML = `
+                    <span class="w-5 h-5 rounded-full bg-white/25 border border-current/20 flex items-center justify-center text-[11px] shrink-0">${iconMark}</span>
+                    <span class="truncate">${app.levelLabel}</span>
+                `;
+                stepperContainer.appendChild(stepEl);
+            });
+
+            // 1. Render delle 3 Tabs con colori pastello differenziati e livello di difficoltà
+            const tabsContainer = document.getElementById('exercise-tabs-container');
+            tabsContainer.innerHTML = '';
+
+            appConfig.apps.forEach((app, idx) => {
+                const state = studentSession.exercises[idx];
+                const locked = isTabLocked(idx);
+                const isActive = idx === activeIdx;
+                const tTheme = TAB_THEMES[idx];
+
+                let statusBadge = '';
+                if (locked) {
+                    statusBadge = `<span class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 bg-slate-200/80 px-2.5 py-0.5 rounded-full">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        Bloccato
+                    </span>`;
+                } else if (state.status === 'completed') {
+                    statusBadge = `<span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Completato
+                    </span>`;
+                } else if (state.status === 'expired') {
+                    statusBadge = `<span class="inline-flex items-center gap-1 text-xs font-semibold text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full">
+                        Tempo scaduto
+                    </span>`;
+                } else if (state.status === 'stopped') {
+                    statusBadge = `<span class="inline-flex items-center gap-1 text-xs font-semibold text-rose-800 bg-rose-100 px-2.5 py-0.5 rounded-full">
+                        Interrotto
+                    </span>`;
+                } else if (state.status === 'in_progress') {
+                    statusBadge = `<span class="inline-flex items-center gap-1 text-xs font-semibold text-sky-800 bg-sky-100 px-2.5 py-0.5 rounded-full">
+                        In corso
+                    </span>`;
+                } else {
+                    statusBadge = `<span class="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full">
+                        Da iniziare
+                    </span>`;
+                }
+
+                const cardClasses = isActive
+                    ? `bg-white border-2 ${tTheme.activeBorder} shadow-md`
+                    : locked
+                        ? 'bg-slate-100/80 border border-slate-200 opacity-75 cursor-not-allowed'
+                        : `bg-white border border-slate-200/90 ${tTheme.inactiveHover} hover:shadow-xs cursor-pointer`;
+
+                const maxTimeStr = appConfig.timerEnabled ? formatTime(getMaxSecondsForApp(idx)) : 'Illimitato';
+
+                const tabBtn = document.createElement('button');
+                tabBtn.type = 'button';
+                tabBtn.onclick = () => selectExerciseTab(idx);
+                tabBtn.className = `p-4 rounded-3xl text-left transition-all flex flex-col justify-between gap-2.5 ${cardClasses}`;
+                tabBtn.innerHTML = `
+                    <div class="flex items-center justify-between w-full gap-2">
+                        <span class="text-xs font-extrabold uppercase tracking-wider ${isActive ? tTheme.labelColor : 'text-slate-500'}">Scheda ${idx + 1}</span>
+                        ${statusBadge}
+                    </div>
+                    <div>
+                        <span class="inline-block text-[11px] font-bold px-2 py-0.5 rounded-lg border ${tTheme.levelPill} mb-1">${app.levelLabel}</span>
+                        <div class="font-display font-bold text-sm text-slate-800 line-clamp-1">${app.title}</div>
+                    </div>
+                    <div class="flex items-center justify-between w-full text-xs text-slate-500 pt-1.5 border-t border-slate-100">
+                        <span>Max: <strong>${maxTimeStr}</strong></span>
+                        <span>Impiegato: <strong>${formatTime(state.elapsedSeconds)}</strong></span>
+                    </div>
+                `;
+                tabsContainer.appendChild(tabBtn);
+            });
+
+            // 2. Aggiorna dettagli scheda attiva e tema colore
+            const currentApp = appConfig.apps[activeIdx];
+            const currentState = studentSession.exercises[activeIdx];
+
+            const cardHeader = document.getElementById('active-card-header');
+            cardHeader.className = `p-5 sm:p-6 border-b border-slate-200/80 ${activeTheme.headerBg} flex flex-col lg:flex-row lg:items-center justify-between gap-4 transition-colors`;
+
+            const exBadge = document.getElementById('active-ex-badge');
+            exBadge.className = `px-3 py-1 rounded-full ${activeTheme.badgeBg} text-white text-xs font-bold uppercase tracking-wider`;
+            exBadge.textContent = `Esercizio ${activeIdx + 1} di 3`;
+
+            const levelBadge = document.getElementById('active-ex-level-badge');
+            levelBadge.className = `px-3 py-1 rounded-full text-xs font-extrabold border shadow-2xs ${activeTheme.levelPill}`;
+            levelBadge.textContent = currentApp.levelLabel;
+
+            document.getElementById('active-ex-title').textContent = currentApp.title;
+            document.getElementById('active-ex-level-desc').textContent = currentApp.levelDescription;
+            document.getElementById('active-ex-obj-primary').textContent = currentApp.primaryObjective;
+            document.getElementById('active-ex-obj-secondary').textContent = currentApp.secondaryObjective;
+
+            const statusPill = document.getElementById('active-ex-status-pill');
+            if (currentState.status === 'completed') {
+                statusPill.className = 'px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800';
+                statusPill.textContent = 'Superato con successo';
+            } else if (currentState.status === 'expired') {
+                statusPill.className = 'px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800';
+                statusPill.textContent = 'Tempo scaduto';
+            } else if (currentState.status === 'stopped') {
+                statusPill.className = 'px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800';
+                statusPill.textContent = 'Interrotta dall’alunno';
+            } else {
+                statusPill.className = 'px-3 py-1 rounded-full text-xs font-bold bg-white/80 text-slate-700 border border-slate-200/80';
+                statusPill.textContent = 'Attività in svolgimento';
+            }
+
+            // 3. Mostra solo l'iframe corrispondente
+            [0, 1, 2].forEach(i => {
+                const wrapper = document.getElementById(`iframe-wrapper-${i}`);
+                if (i === activeIdx) {
+                    wrapper.classList.remove('hidden');
+                } else {
+                    wrapper.classList.add('hidden');
+                }
+            });
+
+            // 4. Gestisci overlay scaduto, interrotto, banner completato e pulsanti azione
+            const overlayExpired = document.getElementById('overlay-expired');
+            const overlayStopped = document.getElementById('overlay-stopped');
+            const bannerCompleted = document.getElementById('banner-completed');
+            const btnConfirm = document.getElementById('btn-confirm-completion');
+            const btnStop = document.getElementById('btn-stop-activity');
+
+            overlayExpired.classList.toggle('hidden', currentState.status !== 'expired');
+            overlayStopped.classList.toggle('hidden', currentState.status !== 'stopped');
+            bannerCompleted.classList.toggle('hidden', currentState.status !== 'completed');
+
+            const isTerminalState = ['completed', 'expired', 'stopped'].includes(currentState.status);
+
+            // Stato pulsante Interrompi attività
+            if (isTerminalState) {
+                btnStop.disabled = true;
+                btnStop.className = 'hidden';
+            } else {
+                btnStop.disabled = false;
+                btnStop.className = 'w-full sm:w-auto px-4 py-3 rounded-2xl bg-rose-100 hover:bg-rose-200/80 text-rose-800 border border-rose-200 font-semibold transition flex items-center justify-center gap-2 text-sm';
+            }
+
+            // Stato pulsante Conferma completamento
+            if (currentState.status === 'completed') {
+                btnConfirm.disabled = true;
+                btnConfirm.className = 'w-full sm:w-auto px-5 py-3 rounded-2xl bg-emerald-100 text-emerald-800 font-bold cursor-default flex items-center justify-center gap-2 text-sm';
+                btnConfirm.innerHTML = `
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>Esercizio Registrato</span>
+                `;
+            } else if (currentState.status === 'expired') {
+                btnConfirm.disabled = true;
+                btnConfirm.className = 'w-full sm:w-auto px-5 py-3 rounded-2xl bg-slate-200 text-slate-500 font-semibold cursor-not-allowed flex items-center justify-center gap-2 text-sm';
+                btnConfirm.innerHTML = `<span>Tempo Scaduto</span>`;
+            } else if (currentState.status === 'stopped') {
+                btnConfirm.disabled = true;
+                btnConfirm.className = 'w-full sm:w-auto px-5 py-3 rounded-2xl bg-rose-50 text-rose-400 border border-rose-100 font-semibold cursor-not-allowed flex items-center justify-center gap-2 text-sm';
+                btnConfirm.innerHTML = `<span>Attività Interrotta</span>`;
+            } else {
+                btnConfirm.disabled = false;
+                btnConfirm.className = 'w-full sm:w-auto px-5 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-600 active:scale-[0.99] text-white font-bold shadow-sm shadow-emerald-200 transition flex items-center justify-center gap-2 text-sm';
+                btnConfirm.innerHTML = `
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span>Ho completato correttamente l'esercizio</span>
+                `;
+            }
+
+            updateTimerDisplayOnly();
+        }
+
+        /* ===================================================================== */
+        /* GESTIONE INTERRUZIONE MANUALE ATTIVITÀ / PERCORSO                     */
+        /* ===================================================================== */
+
+        /**
+         * Apre la modale di conferma interruzione ('single' = scheda attiva, 'session' = tutto il percorso)
+         */
+        function openStopConfirmModal(mode = 'single') {
+            pendingStopMode = mode;
+            const titleEl = document.getElementById('stop-modal-title');
+            const descEl = document.getElementById('stop-modal-desc');
+
+            if (mode === 'session') {
+                titleEl.textContent = 'Interrompere l’intero percorso?';
+                descEl.innerHTML = `Tutte le attività non ancora completate verranno fermate adesso e registrate nel Report come <strong>"Interrotte dall'alunno"</strong>. Potrai subito visualizzare e stampare il tuo Report finale.`;
+            } else {
+                const idx = studentSession.activeTab + 1;
+                titleEl.textContent = `Interrompere l’Esercizio ${idx}?`;
+                descEl.innerHTML = `Se interrompi adesso, il timer dell'Esercizio ${idx} si fermerà subito e l'attività verrà salvata nel Report come <strong>"Interrotta dall'alunno"</strong>.`;
+            }
+
+            document.getElementById('stop-confirm-modal').classList.remove('hidden');
+        }
+
+        function closeStopConfirmModal() {
+            document.getElementById('stop-confirm-modal').classList.add('hidden');
+        }
+
+        /**
+         * Esegue l'interruzione confermata dallo studente
+         */
+        function confirmStopAction() {
+            closeStopConfirmModal();
+
+            if (pendingStopMode === 'session') {
+                studentSession.exercises.forEach(ex => {
+                    if (ex.status === 'in_progress' || ex.status === 'not_started') {
+                        ex.status = 'stopped';
+                    }
+                });
+                renderStudentWorkspace();
+                showToast('Percorso interrotto. Ecco il riepilogo finale.', 'warning');
+                openReportModal();
+            } else {
+                const idx = studentSession.activeTab;
+                const exState = studentSession.exercises[idx];
+                if (exState.status === 'in_progress' || exState.status === 'not_started') {
+                    exState.status = 'stopped';
+                }
+                renderStudentWorkspace();
+                showToast(`Esercizio ${idx + 1} interrotto e registrato.`, 'warning');
+            }
+        }
+
+        /**
+         * Registra l'esercizio corrente come completato correttamente
+         */
+        function markCurrentExerciseCompleted() {
+            const idx = studentSession.activeTab;
+            const exState = studentSession.exercises[idx];
+
+            if (exState.status === 'expired' || exState.status === 'stopped') {
+                showToast('Questo esercizio è già terminato.', 'error');
+                return;
+            }
+
+            if (exState.status === 'completed') return;
+
+            exState.status = 'completed';
+            exState.completedAt = new Date();
+
+            renderStudentWorkspace();
+            showToast(`Ottimo! Esercizio ${idx + 1} completato in ${formatTime(exState.elapsedSeconds)}.`, 'success');
+        }
+
+        function goToNextAvailableOrReport() {
+            const current = studentSession.activeTab;
+            if (current < 2 && !isTabLocked(current + 1)) {
+                selectExerciseTab(current + 1);
+            } else {
+                openReportModal();
+            }
+        }
+
+        window.addEventListener('message', function(event) {
+            if (!studentSession.isStarted) return;
+            try {
+                const data = typeof event.data === 'string' ? event.data : JSON.stringify(event.data || {});
+                if (data.includes('AppSolved') || data.includes('solved') || data.includes('completed')) {
+                    const idx = studentSession.activeTab;
+                    if (studentSession.exercises[idx].status === 'in_progress') {
+                        markCurrentExerciseCompleted();
+                    }
+                }
+            } catch (e) {
+                // Ignora errori cross-origin
+            }
+        });
+
+        /* ===================================================================== */
+        /* MODALE REPORT FINALE                                                  */
+        /* ===================================================================== */
+
+        function openReportModal() {
+            const now = new Date();
+            document.getElementById('rep-date').textContent = now.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            document.getElementById('rep-time').textContent = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+
+            document.getElementById('rep-student-name').textContent = `${studentSession.firstName} ${studentSession.lastName}`;
+            document.getElementById('rep-student-class').textContent = studentSession.studentClass;
+            document.getElementById('rep-mode-used').textContent = appConfig.sequentialOrder ? 'Sequenziale (1 → 2 → 3)' : 'Ordine Libero';
+
+            let completedCount = 0;
+            let totalSeconds = 0;
+
+            const listContainer = document.getElementById('rep-exercises-list');
+            listContainer.innerHTML = '';
+
+            appConfig.apps.forEach((app, idx) => {
+                const state = studentSession.exercises[idx];
+                const maxSecs = getMaxSecondsForApp(idx);
+                totalSeconds += state.elapsedSeconds;
+
+                const isPassed = state.status === 'completed';
+                const isExpired = state.status === 'expired';
+                const isStopped = state.status === 'stopped';
+                if (isPassed) completedCount++;
+
+                const primaryAchieved = isPassed;
+                const secondaryAchieved = isPassed && (!appConfig.timerEnabled || state.elapsedSeconds <= maxSecs);
+
+                let statusBadgeHtml = '';
+                if (isPassed) {
+                    statusBadgeHtml = `<span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">SUPERATO</span>`;
+                } else if (isExpired) {
+                    statusBadgeHtml = `<span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">TEMPO SCADUTO</span>`;
+                } else if (isStopped) {
+                    statusBadgeHtml = `<span class="px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200">INTERROTTO DALL'ALUNNO</span>`;
+                } else {
+                    statusBadgeHtml = `<span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">NON COMPLETATO</span>`;
+                }
+
+                const maxTimeLabel = appConfig.timerEnabled ? formatTime(maxSecs) : 'Nessun limite';
+
+                const card = document.createElement('div');
+                card.className = 'p-4 sm:p-5 rounded-2xl border border-slate-200 bg-white space-y-3';
+                card.innerHTML = `
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap mb-0.5">
+                                <span class="text-xs font-bold text-sky-600 uppercase">Attività ${idx + 1}</span>
+                                <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">${app.levelLabel}</span>
+                            </div>
+                            <h5 class="font-display font-bold text-slate-900 text-base">${app.title}</h5>
+                        </div>
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <div class="text-xs text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
+                                Durata: <strong class="text-slate-900">${formatTime(state.elapsedSeconds)}</strong> / ${maxTimeLabel}
+                            </div>
+                            ${statusBadgeHtml}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        <!-- Obiettivo Primario -->
+                        <div class="p-3.5 rounded-xl border ${primaryAchieved ? 'bg-emerald-50/60 border-emerald-200' : 'bg-slate-50 border-slate-200'}">
+                            <div class="flex items-center justify-between gap-2 mb-1">
+                                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Obiettivo Primario</span>
+                                <span class="text-xs font-bold ${primaryAchieved ? 'text-emerald-700' : 'text-rose-600'}">
+                                    ${primaryAchieved ? '✓ Superato' : '✗ Non superato'}
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-700 leading-relaxed">${app.primaryObjective}</p>
+                        </div>
+
+                        <!-- Obiettivo Secondario -->
+                        <div class="p-3.5 rounded-xl border ${secondaryAchieved ? 'bg-emerald-50/60 border-emerald-200' : 'bg-slate-50 border-slate-200'}">
+                            <div class="flex items-center justify-between gap-2 mb-1">
+                                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Obiettivo Secondario</span>
+                                <span class="text-xs font-bold ${secondaryAchieved ? 'text-emerald-700' : 'text-rose-600'}">
+                                    ${secondaryAchieved ? '✓ Superato' : '✗ Non superato'}
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-700 leading-relaxed">${app.secondaryObjective}</p>
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+
+            document.getElementById('rep-summary-score').textContent = `${completedCount} / 3 Esercizi Superati`;
+            document.getElementById('rep-total-duration').textContent = formatTime(totalSeconds);
+
+            document.getElementById('report-modal').classList.remove('hidden');
+        }
+
+        function closeReportModal() {
+            document.getElementById('report-modal').classList.add('hidden');
+        }
+
+        function copyReportToClipboard() {
+            const dateStr = document.getElementById('rep-date').textContent;
+            const timeStr = document.getElementById('rep-time').textContent;
+            let text = `REPORT PERCORSO DIDATTICO LEARNINGAPPS\n`;
+            text += `==========================================\n`;
+            text += `Alunno: ${studentSession.firstName} ${studentSession.lastName}\n`;
+            text += `Classe: ${studentSession.studentClass}\n`;
+            text += `Data e Ora: ${dateStr} - ${timeStr}\n`;
+            text += `Modalità: ${appConfig.sequentialOrder ? 'Sequenziale' : 'Libera'}\n\n`;
+
+            let totalSecs = 0;
+            appConfig.apps.forEach((app, idx) => {
+                const state = studentSession.exercises[idx];
+                const maxSecs = getMaxSecondsForApp(idx);
+                totalSecs += state.elapsedSeconds;
+                const isPassed = state.status === 'completed';
+                const secondaryOk = isPassed && (!appConfig.timerEnabled || state.elapsedSeconds <= maxSecs);
+
+                let statusText = 'NON COMPLETATO';
+                if (isPassed) statusText = 'SUPERATO';
+                else if (state.status === 'expired') statusText = 'TEMPO SCADUTO';
+                else if (state.status === 'stopped') statusText = "INTERROTTO DALL'ALUNNO";
+
+                text += `${idx + 1}. ${app.title} [${app.levelLabel}]\n`;
+                text += `   - Esito: ${statusText}\n`;
+                text += `   - Durata: ${formatTime(state.elapsedSeconds)} (Max: ${appConfig.timerEnabled ? formatTime(maxSecs) : 'Illimitato'})\n`;
+                text += `   - Obiettivo Primario: ${app.primaryObjective} -> [${isPassed ? 'SUPERATO' : 'NON SUPERATO'}]\n`;
+                text += `   - Obiettivo Secondario: ${app.secondaryObjective} -> [${secondaryOk ? 'SUPERATO' : 'NON SUPERATO'}]\n\n`;
+            });
+
+            text += `Tempo totale impiegato: ${formatTime(totalSecs)}\n`;
+
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast('Report copiato negli appunti!', 'success');
+            } catch (err) {
+                showToast('Impossibile copiare automaticamente il testo.', 'error');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        /* ===================================================================== */
+        /* LOGICA AREA DOCENTE                                                   */
+        /* ===================================================================== */
+
+        function handleTeacherLogin(event) {
+            event.preventDefault();
+            const input = document.getElementById('teacher-password-input').value;
+            const errorEl = document.getElementById('teacher-login-error');
+
+            if (input === appConfig.password) {
+                isTeacherAuthenticated = true;
+                errorEl.classList.add('hidden');
+                document.getElementById('teacher-login-card').classList.add('hidden');
+                document.getElementById('teacher-dashboard').classList.remove('hidden');
+                populateTeacherDashboard();
+                showToast('Accesso Area Docente effettuato.', 'success');
+            } else {
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        function logoutTeacher() {
+            isTeacherAuthenticated = false;
+            switchMainArea('student');
+            showToast('Area Docente bloccata.', 'info');
+        }
+
+        function populateTeacherDashboard() {
+            const seqCheckbox = document.getElementById('cfg-sequential-order');
+            const timerCheckbox = document.getElementById('cfg-timer-enabled');
+            const orderStatusText = document.getElementById('cfg-order-status-text');
+
+            seqCheckbox.checked = appConfig.sequentialOrder;
+            timerCheckbox.checked = appConfig.timerEnabled;
+            document.getElementById('cfg-new-password').value = '';
+
+            const updateOrderText = () => {
+                orderStatusText.textContent = seqCheckbox.checked
+                    ? 'Stato attuale: Sequenziale obbligatorio (1 → 2 → 3)'
+                    : 'Stato attuale: Accesso libero a tutte le schede';
+            };
+            updateOrderText();
+            seqCheckbox.onchange = updateOrderText;
+
+            const container = document.getElementById('teacher-apps-config-container');
+            container.innerHTML = '';
+
+            const cardAccents = ['bg-emerald-100 text-emerald-800', 'bg-amber-100 text-amber-800', 'bg-cyan-100 text-cyan-800'];
+
+            appConfig.apps.forEach((app, idx) => {
+                const card = document.createElement('div');
+                card.className = 'bg-white p-5 rounded-3xl border border-slate-200/90 shadow-sm space-y-4 flex flex-col justify-between';
+                card.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <span class="px-3 py-1 rounded-full ${cardAccents[idx]} text-xs font-bold uppercase">App ${idx + 1}</span>
+                            <span class="text-[11px] font-mono text-slate-400 truncate max-w-[160px]" title="${app.url}">${app.url.split('v=')[1] || 'LearningApps'}</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-2.5 bg-slate-50/80 p-3 rounded-2xl border border-slate-100">
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-amber-700 mb-1">Livello di Difficoltà</label>
+                                <input type="text" id="cfg-app-level-${idx}" value="${escapeHtml(app.levelLabel)}"
+                                    class="w-full px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold focus:border-violet-400 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">Descrizione Livello</label>
+                                <input type="text" id="cfg-app-level-desc-${idx}" value="${escapeHtml(app.levelDescription)}"
+                                    class="w-full px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs focus:border-violet-400 outline-none">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Titolo Esercizio</label>
+                            <input type="text" id="cfg-app-title-${idx}" value="${escapeHtml(app.title)}"
+                                class="w-full px-3.5 py-2 rounded-2xl border border-slate-200 text-sm focus:border-violet-400 outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Timer Differenziato (Minuti : Secondi)</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <div class="text-[11px] text-slate-500 mb-0.5">Minuti</div>
+                                    <input type="number" min="0" max="120" id="cfg-app-min-${idx}" value="${app.minutes}"
+                                        class="w-full px-3.5 py-2 rounded-2xl border border-slate-200 text-sm focus:border-violet-400 outline-none">
+                                </div>
+                                <div>
+                                    <div class="text-[11px] text-slate-500 mb-0.5">Secondi</div>
+                                    <input type="number" min="0" max="59" id="cfg-app-sec-${idx}" value="${app.seconds}"
+                                        class="w-full px-3.5 py-2 rounded-2xl border border-slate-200 text-sm focus:border-violet-400 outline-none">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Obiettivo Primario</label>
+                            <textarea rows="2" id="cfg-app-obj1-${idx}"
+                                class="w-full px-3.5 py-2 rounded-2xl border border-slate-200 text-sm focus:border-violet-400 outline-none">${escapeHtml(app.primaryObjective)}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Obiettivo Secondario</label>
+                            <textarea rows="2" id="cfg-app-obj2-${idx}"
+                                class="w-full px-3.5 py-2 rounded-2xl border border-slate-200 text-sm focus:border-violet-400 outline-none">${escapeHtml(app.secondaryObjective)}</textarea>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function applyProgressiveTimers() {
+            const presetTimes = [
+                { min: 5, sec: 0 },
+                { min: 7, sec: 0 },
+                { min: 10, sec: 0 }
+            ];
+            presetTimes.forEach((t, idx) => {
+                const minInput = document.getElementById(`cfg-app-min-${idx}`);
+                const secInput = document.getElementById(`cfg-app-sec-${idx}`);
+                if (minInput && secInput) {
+                    minInput.value = t.min;
+                    secInput.value = t.sec;
+                }
+            });
+            showToast('Tempi crescenti (5m → 7m → 10m) impostati. Ricorda di salvare!', 'info');
+        }
+
+        function saveTeacherConfig() {
+            appConfig.sequentialOrder = document.getElementById('cfg-sequential-order').checked;
+            appConfig.timerEnabled = document.getElementById('cfg-timer-enabled').checked;
+
+            const newPwd = document.getElementById('cfg-new-password').value.trim();
+            if (newPwd.length > 0) {
+                appConfig.password = newPwd;
+                appConfig.isCustomPassword = true;
+                updatePasswordHintVisibility();
+                document.getElementById('cfg-new-password').value = '';
+            }
+
+            appConfig.apps.forEach((app, idx) => {
+                const levelLabel = document.getElementById(`cfg-app-level-${idx}`).value.trim();
+                const levelDesc = document.getElementById(`cfg-app-level-desc-${idx}`).value.trim();
+                const title = document.getElementById(`cfg-app-title-${idx}`).value.trim();
+                const mins = Math.max(0, parseInt(document.getElementById(`cfg-app-min-${idx}`).value, 10) || 0);
+                const secs = Math.min(59, Math.max(0, parseInt(document.getElementById(`cfg-app-sec-${idx}`).value, 10) || 0));
+                const obj1 = document.getElementById(`cfg-app-obj1-${idx}`).value.trim();
+                const obj2 = document.getElementById(`cfg-app-obj2-${idx}`).value.trim();
+
+                app.levelLabel = levelLabel || DEFAULT_CONFIG.apps[idx].levelLabel;
+                app.levelDescription = levelDesc || DEFAULT_CONFIG.apps[idx].levelDescription;
+                app.title = title || `Esercizio ${idx + 1}`;
+                if (mins === 0 && secs === 0) {
+                    app.minutes = 1;
+                    app.seconds = 0;
+                } else {
+                    app.minutes = mins;
+                    app.seconds = secs;
+                }
+                app.primaryObjective = obj1 || DEFAULT_CONFIG.apps[idx].primaryObjective;
+                app.secondaryObjective = obj2 || DEFAULT_CONFIG.apps[idx].secondaryObjective;
+            });
+
+            persistConfig();
+            updateLoginRulesSummary();
+            showToast('Impostazioni docente salvate con successo!', 'success');
+        }
+
+        function restoreDefaultConfig() {
+            const currentPwd = appConfig.password;
+            const currentIsCustom = appConfig.isCustomPassword;
+            appConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+            appConfig.password = currentPwd;
+            appConfig.isCustomPassword = currentIsCustom;
+            persistConfig();
+            populateTeacherDashboard();
+            updateLoginRulesSummary();
+            showToast('Configurazione predefinita ripristinata.', 'info');
+        }
+
+        function resetStudentSession() {
+            if (timerInterval) clearInterval(timerInterval);
+            studentSession = {
+                isStarted: false,
+                firstName: '',
+                lastName: '',
+                studentClass: '',
+                startDate: null,
+                activeTab: 0,
+                exercises: [
+                    { status: 'in_progress', elapsedSeconds: 0, completedAt: null },
+                    { status: 'not_started', elapsedSeconds: 0, completedAt: null },
+                    { status: 'not_started', elapsedSeconds: 0, completedAt: null }
+                ]
+            };
+
+            [0, 1, 2].forEach(idx => {
+                const wrapper = document.getElementById(`iframe-wrapper-${idx}`);
+                const iframe = wrapper.querySelector('iframe');
+                if (iframe) {
+                    const src = iframe.src;
+                    iframe.src = src;
+                }
+            });
+
+            document.getElementById('input-nome').value = '';
+            document.getElementById('input-cognome').value = '';
+            document.getElementById('input-classe').value = '';
+            document.getElementById('header-student-badge').classList.add('hidden');
+            document.getElementById('student-workspace').classList.add('hidden');
+            document.getElementById('student-login-card').classList.remove('hidden');
+
+            showToast('Sessione alunno azzerata. Pronto per un nuovo studente.', 'success');
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            updatePasswordHintVisibility();
+            updateLoginRulesSummary();
+        });
+    </script>
+</body>
+</html>
